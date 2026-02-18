@@ -1,0 +1,27 @@
+.register-wrap { display: grid; place-items: center; min-height: calc(100vh - 120px); }
+
+.register-card { max-width: 460px; width: 100%; text-align: center; }
+
+.register-logo { height: 20px; margin-bottom: 18px; }
+
+.register-title { color: var(--green); margin-bottom: 6px; }
+.register-sub { color: var(--muted2); font-size: 14px; margin-bottom: 18px; }
+
+.register-form { display: flex; flex-direction: column; gap: 14px; margin-top: 6px; }
+
+.role-row { text-align: left; }
+.role-label { display: block; font-size: 12px; color: var(--muted); margin: 6px 0; }
+
+.register-links { margin-top: 16px; font-size: 13px; color: var(--muted2); }
+.register-links a { color: var(--green); text-decoration: none; margin-left: 6px; }
+.register-links a:hover { text-decoration: underline; }
+
+.register-error {
+  margin: 10px 0 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.10);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  font-size: 13px;
+}

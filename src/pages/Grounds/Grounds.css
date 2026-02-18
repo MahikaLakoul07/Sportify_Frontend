@@ -1,0 +1,50 @@
+.grounds-header { margin-top: 24px; margin-bottom: 18px; }
+
+.grounds-filters {
+  display: grid;
+  grid-template-columns: 1.2fr 0.9fr 0.7fr 0.35fr;
+  gap: 12px;
+  align-items: center;
+  margin-top: 18px;
+}
+@media (max-width: 900px) {
+  .grounds-filters { grid-template-columns: 1fr; }
+}
+
+.grounds-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.grounds-card {
+  text-decoration: none;
+  color: #fff;
+  background: #0f172a;
+  border: 1px solid rgba(51, 65, 85, 0.6);
+  border-radius: 18px;
+  padding: 18px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.grounds-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+}
+
+.grounds-cardTop { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.grounds-name { font-weight: 800; font-size: 16px; }
+.grounds-price { color: var(--green); font-weight: 700; font-size: 14px; }
+
+.grounds-meta { margin-top: 10px; display: flex; justify-content: space-between; color: var(--muted2); font-size: 13px; }
+.grounds-cta { margin-top: 14px; color: var(--green); font-weight: 700; font-size: 13px; }
+
+.grounds-error {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(239, 68, 68, 0.10);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+}
+.grounds-loading { margin-top: 18px; color: var(--muted2); }
