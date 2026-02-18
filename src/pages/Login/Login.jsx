@@ -1,20 +1,62 @@
 import React, { useState } from "react";
 import logo from "../../assets/logo.png";
-import { useNavigate } from "react-router-dom"; // If using React Router
+import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
 
 export default function Login() {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+
+  // Form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = (e) => {
+  // UI state
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    // For now, just alert the inputs, later will connect to Django backend
-    alert(`Email: ${email}\nPassword: ${password}`);
-    // Navigate to dashboard after login (dummy)
-    // navigate("/dashboard"); 
+    setErr("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/authapp/login/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.detail || "Invalid email or password");
+      }
+
+      // Save tokens in localStorage
+      localStorage.setItem("access", data.access);
+      localStorage.setItem("refresh", data.refresh);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // Redirect based on user type
+      const userType = (data.user.user_type || "").toUpperCase();
+
+      if (userType === "OWNER") {
+        navigate("/owner");
+      } else {
+        navigate("/player");
+      }
+
+    } catch (error) {
+      setErr(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -23,28 +65,32 @@ export default function Login() {
         <img src={logo} alt="Sportify Logo" className="login-logo" />
         <h2>Login to Sportify</h2>
 
+        {err && <div className="login-error">{err}</div>}
+
         <form onSubmit={handleLogin}>
           <input
             type="email"
             placeholder="Email"
             value={email}
-            // onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
+
           <input
             type="password"
             placeholder="Password"
             value={password}
-            // onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
 
-          <button type="submit" className="btn primary">Login</button>
+          <button type="submit" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </button>
         </form>
 
         <div className="login-links">
-          <a href="#">Forgot Password?</a>
-          <a href="#">Don't have an account? Register</a>
+          <Link to="/register">Don't have an account? Register</Link>
         </div>
       </div>
     </div>
