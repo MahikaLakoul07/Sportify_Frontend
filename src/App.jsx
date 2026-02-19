@@ -10,6 +10,8 @@ import CreateGround from './pages/Grounds/CreateGround';
 import OwnerRoute from './components/OwnerRoute'; 
 import GroundDetails from './pages/Grounds/GroundDetails';
 import BookGround from './pages/Bookings/BookGround'; 
+import MyBookings from './pages/Bookings/MyBookings';
+import MyBookingDetails from './pages/Bookings/MyBookingDetails';
 import "./App.css";
 
 const App = () => {
@@ -28,6 +30,8 @@ const App = () => {
       } />
       <Route path='/grounds/:id' element={<GroundDetails />} />
       <Route path='/grounds/:id/book' element={<BookGround />} />
+      <Route path='/mybookings' element={<MyBookings />} />
+      <Route path='/mybookings/:bookingId' element={<MyBookingDetails />} />
      </Routes>
     <Footer />
 

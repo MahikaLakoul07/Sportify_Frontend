@@ -34,9 +34,10 @@ export default function Home() {
           <div className="hero-actions">
 
             {/* navigates to /grounds */}
-            <Link to="/grounds/1/book" className="btn primary">
-              Book a Ground
+            <Link to="/grounds" className="btn primary">
+            Book a Ground
             </Link>
+
 
             <button
               className="btn outline"
@@ -69,12 +70,13 @@ export default function Home() {
         <div className="feature-grid">
 
           {/* clickable button */}
-          <FeatureCard
+         <FeatureCard
             icon={<CalendarCheck />}
             title="Smart Ground Booking"
             desc="Players can book futsal grounds using public or private booking with real-time availability."
-            to="/grounds/1/book"
-          />
+            to="/grounds"
+        />
+
 
           <FeatureCard
             icon={<Users />}
@@ -175,16 +177,13 @@ function FeatureCard({ icon, title, desc, to }) {
     </div>
   );
 
-  if (to) {
-    return (
-      <Link to={to} className="feature-link">
-        {content}
-      </Link>
-    );
-  }
-
-  return content;
+  return to ? (
+    <Link to={to} className="feature-link">
+      {content}
+    </Link>
+  ) : content;
 }
+
 
 
 /* ================= STEP CARD ================= */
@@ -204,20 +203,27 @@ function StepCard({ step, title, desc }) {
 
 function FutsalCard({ image, name, location, desc }) {
   return (
-    <div className="feature-card">
-      <img
-        src={image}
-        alt={name}
-        className="futsal-image"
-      />
+    <Link to="/grounds" className="feature-link">
+      <div className="feature-card">
+        <img
+          src={image}
+          alt={name}
+          className="futsal-image"
+        />
 
-      <h4>{name}</h4>
+        <h4>{name}</h4>
 
-      <p style={{ fontSize: "14px", color: "#cbd5f5", marginBottom: "8px" }}>
-        <MapPin size={14} /> {location}
-      </p>
+        <p style={{ fontSize: "14px", color: "#cbd5f5", marginBottom: "8px" }}>
+          <MapPin size={14} /> {location}
+        </p>
 
-      <p>{desc}</p>
-    </div>
+        <p>{desc}</p>
+
+        <div style={{ marginTop: "10px", fontWeight: 700 }}>
+          Browse →
+        </div>
+      </div>
+    </Link>
   );
 }
+
