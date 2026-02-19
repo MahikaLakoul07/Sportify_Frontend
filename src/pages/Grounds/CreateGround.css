@@ -1,0 +1,69 @@
+.createGround-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 18px;
+}
+
+.createGround-card {
+  margin-top: 10px;
+}
+
+.createGround-form {
+  width: 100%;
+}
+
+.createGround-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .createGround-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.createGround-label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted2);
+  margin-bottom: 8px;
+}
+
+.createGround-textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.createGround-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.createGround-error {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  background: rgba(239, 68, 68, 0.12);
+  color: #fecaca;
+  font-size: 14px;
+}
+
+.createGround-success {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  background: rgba(52, 211, 153, 0.12);
+  color: #bbf7d0;
+  font-size: 14px;
+}
+
+.createGround-note {
+  margin-top: 18px;
+}
