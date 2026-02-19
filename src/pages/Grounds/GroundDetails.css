@@ -1,0 +1,51 @@
+.details-card {
+  padding: 18px;
+}
+
+.details-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.details-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.details-price {
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.details-section {
+  margin-top: 16px;
+}
+
+.details-label {
+  font-size: 13px;
+  color: var(--muted2);
+  margin-bottom: 8px;
+}
+
+.details-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.details-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.details-error {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  background: rgba(239, 68, 68, 0.12);
+  color: #fecaca;
+}
