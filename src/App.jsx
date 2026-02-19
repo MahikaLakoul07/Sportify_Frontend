@@ -6,6 +6,10 @@ import Navbar from './components/navbar/navbar';
 import Footer from './components/Footer/Footer';
 import Register from './pages/Register/Register';
 import Grounds from './pages/Grounds/Grounds';
+import CreateGround from './pages/Grounds/CreateGround';
+import OwnerRoute from './components/OwnerRoute'; 
+import GroundDetails from './pages/Grounds/GroundDetails';
+import BookGround from './pages/Bookings/BookGround'; 
 import "./App.css";
 
 const App = () => {
@@ -17,6 +21,13 @@ const App = () => {
       <Route path='/login' element={<Login/>} />
       <Route path='/register' element={<Register/>} />
       <Route path='/grounds' element={<Grounds/>} />
+      <Route path='/createground' element={
+        <OwnerRoute>
+          <CreateGround />
+        </OwnerRoute>
+      } />
+      <Route path='/grounds/:id' element={<GroundDetails />} />
+      <Route path='/grounds/:id/book' element={<BookGround />} />
      </Routes>
     <Footer />
 
