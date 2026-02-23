@@ -1,34 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CreateGround.css";
-
-// --- apiFetch helper for JSON and FormData ---
-async function apiFetch(url, options = {}) {
-  const headers = {};
-
-  // If body is NOT FormData, set JSON headers
-  if (!(options.body instanceof FormData)) {
-    headers["Content-Type"] = "application/json";
-    if (options.body) options.body = JSON.stringify(options.body);
-  }
-
-  const res = await fetch(url, {
-    ...options,
-    headers: { ...headers, ...options.headers },
-    credentials: "include", // send cookies if using session auth
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || `Request failed with status ${res.status}`);
-  }
-
-  const contentType = res.headers.get("content-type");
-  if (contentType && contentType.includes("application/json")) {
-    return res.json();
-  }
-  return res.text();
-}
+import { apiFetch } from "../../api"; // helper that adds Authorization header
 
 export default function CreateGround() {
   const navigate = useNavigate();
@@ -80,15 +53,12 @@ export default function CreateGround() {
 
       if (image) formData.append("image", image);
 
-      // ✅ Full backend URL
       await apiFetch("http://localhost:8000/api/grounds/", {
         method: "POST",
-        body: formData,
+        body: formData, // apiFetch will detect FormData and NOT set JSON headers
       });
 
-      setSuccess(
-        "Ground submitted! Status: PENDING (Admin will approve)."
-      );
+      setSuccess("Ground submitted! Status: PENDING (Admin will approve).");
 
       // Reset form
       setForm({
@@ -121,7 +91,8 @@ export default function CreateGround() {
               Create <span>Ground</span>
             </h1>
             <p className="p">
-              Add your futsal ground details. It will be visible after admin approval.
+              Add your futsal ground details. It will be visible after admin
+              approval.
             </p>
           </div>
         </div>
@@ -152,7 +123,9 @@ export default function CreateGround() {
               </div>
 
               <div>
-                <label className="createGround-label">Price per Hour (Rs)</label>
+                <label className="createGround-label">
+                  Price per Hour (Rs)
+                </label>
                 <input
                   className="input"
                   name="price_per_hour"
@@ -236,8 +209,8 @@ export default function CreateGround() {
 
         <div className="card-soft createGround-note">
           <div className="p" style={{ marginTop: 0 }}>
-            After you submit, the ground will be <b>PENDING</b>.
-            Admin will approve it before public visibility.
+            After you submit, the ground will be <b>PENDING</b>. Admin will
+            approve it before public visibility.
           </div>
         </div>
       </div>

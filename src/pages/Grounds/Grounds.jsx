@@ -164,7 +164,7 @@ export default function Grounds() {
           <input
             className="input"
             name="location"
-            placeholder="Location (e.g., Thapathali)"
+            placeholder="Location"
             value={filters.location}
             onChange={onChange}
           />
