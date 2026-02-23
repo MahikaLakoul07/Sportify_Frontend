@@ -3,13 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import "./Register.css";
 
-// ✅ API call
+// API call
 const register = async (payload) => {
   const response = await fetch("http://127.0.0.1:8000/authapp/register/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Accept": "application/json",
+      Accept: "application/json",
     },
     body: JSON.stringify(payload),
   });
@@ -22,7 +22,6 @@ const register = async (payload) => {
       firstKey && Array.isArray(data[firstKey])
         ? data[firstKey][0]
         : data?.detail || "Registration failed.";
-
     throw new Error(message);
   }
 
@@ -32,14 +31,14 @@ const register = async (payload) => {
 export default function Register() {
   const navigate = useNavigate();
 
-  // ✅ Form state matching backend fields (lowercase)
+  // Form state
   const [form, setForm] = useState({
     username: "",
     email: "",
     phone: "",
     password: "",
-    user_type: "player",  // lowercase
-    gender: "male",       // lowercase
+    user_type: "player", // must match backend choices
+    gender: "male",
   });
 
   const [loading, setLoading] = useState(false);
@@ -48,7 +47,7 @@ export default function Register() {
   const onChange = (e) =>
     setForm((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value.toLowerCase(), // force lowercase
+      [e.target.name]: e.target.value.toLowerCase(),
     }));
 
   const onSubmit = async (e) => {
@@ -57,15 +56,19 @@ export default function Register() {
     setLoading(true);
 
     try {
-      await register(form);
+      const data = await register(form);
 
-      // Redirect based on selected user_type
+      // ✅ Store JWT in localStorage
+      localStorage.setItem("access", data.access);
+      localStorage.setItem("refresh", data.refresh);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // Redirect based on role
       if (form.user_type === "owner") {
         navigate("/owner");
       } else {
         navigate("/player");
       }
-
     } catch (error) {
       setErr(error.message);
     } finally {

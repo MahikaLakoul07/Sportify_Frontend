@@ -67,3 +67,16 @@
 .createGround-note {
   margin-top: 18px;
 }
+
+.createGround-preview {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.createGround-preview img {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 16px;
+  margin-top: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}

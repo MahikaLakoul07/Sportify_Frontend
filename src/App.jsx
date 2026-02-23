@@ -23,11 +23,7 @@ const App = () => {
       <Route path='/login' element={<Login/>} />
       <Route path='/register' element={<Register/>} />
       <Route path='/grounds' element={<Grounds/>} />
-      <Route path='/createground' element={
-        <OwnerRoute>
-          <CreateGround />
-        </OwnerRoute>
-      } />
+      <Route path='/createground' element={ <CreateGround />} />
       <Route path='/grounds/:id' element={<GroundDetails />} />
       <Route path='/grounds/:id/book' element={<BookGround />} />
       <Route path='/mybookings' element={<MyBookings />} />
