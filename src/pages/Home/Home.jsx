@@ -3,15 +3,19 @@ import { motion } from "framer-motion";
 import { CalendarCheck, MapPin, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import "./Home.css";
+
 import futsalImage from "../../assets/futsal_pic.png";
 import dhukuFutsalHub from "../../assets/dhuku_futsal_hub.png";
 import khelkunjArena from "../../assets/khelkunj_arena.png";
 import fieldFutsal from "../../assets/field_futsal.png";
 
+/* REUSABLE COMPONENTS */
+import GroundCard from "../../components/GroundCard/GroundCard.jsx";
+import OpenGameCard from "../../components/OpenGameCard/OpenGameCard.jsx";
+
 export default function Home() {
   return (
     <div className="page">
-
       {/* ================= HERO SECTION ================= */}
       <section className="hero">
         <motion.div
@@ -32,24 +36,13 @@ export default function Home() {
           </p>
 
           <div className="hero-actions">
-
-            {/* navigates to /grounds */}
             <Link to="/grounds" className="btn primary">
-            Book a Ground
+              Book a Ground
             </Link>
 
-
-            <button
-              className="btn outline"
-              onClick={() =>
-                document
-                  .getElementById("how")
-                  .scrollIntoView({ behavior: "smooth" })
-              }
-            >
-              Learn More
-            </button>
-
+            <Link to="/open-games" className="btn outline">
+              Open Games
+            </Link>
           </div>
         </motion.div>
 
@@ -68,28 +61,26 @@ export default function Home() {
         <h3>Core System Features</h3>
 
         <div className="feature-grid">
-
-          {/* clickable button */}
-         <FeatureCard
+          <FeatureCard
             icon={<CalendarCheck />}
             title="Smart Ground Booking"
             desc="Players can book futsal grounds using public or private booking with real-time availability."
             to="/grounds"
-        />
-
+          />
 
           <FeatureCard
             icon={<Users />}
             title="Team Formation & Connections"
             desc="Create public teams, request to join matches, accept or reject players, and build connections."
+            to="/open-games"
           />
 
           <FeatureCard
             icon={<MapPin />}
             title="Location & Preference Based Search"
             desc="Find futsal grounds based on location, time, budget, and availability preferences."
+            to="/grounds"
           />
-
         </div>
       </section>
 
@@ -98,28 +89,68 @@ export default function Home() {
         <h3>Featured Futsal Grounds</h3>
 
         <div className="feature-grid">
-
-          <FutsalCard
+          <GroundCard
             image={dhukuFutsalHub}
             name="Dhuku Futsal Hub"
             location="Kathmandu"
             desc="Modern futsal ground with premium turf and night lighting."
           />
 
-          <FutsalCard
+          <GroundCard
             image={khelkunjArena}
             name="Khelkunj Arena"
             location="Pokhara"
             desc="Popular futsal venue with flexible slots and easy parking."
           />
 
-          <FutsalCard
+          <GroundCard
             image={fieldFutsal}
             name="Field Futsal"
             location="Lalitpur"
             desc="Well-maintained ground ideal for competitive and friendly matches."
           />
+        </div>
+      </section>
 
+      {/* ================= OPEN GAMES (TODAY) ================= */}
+      <section className="features">
+        <div className="section-head">
+          <h3>Open Games (Today)</h3>
+          <Link to="/open-games" className="btn outline">
+            View All
+          </Link>
+        </div>
+
+        <div className="feature-grid">
+          <OpenGameCard
+            image={dhukuFutsalHub}
+            name="Dhuku Futsal Hub"
+            date="Feb 24, 2026"
+            time="6:00 PM"
+            requiredPlayers="3 players"
+            phone="9841XXXXXX"
+            chatLink="/chat/temp-1"
+          />
+
+          <OpenGameCard
+            image={khelkunjArena}
+            name="Khelkunj Arena"
+            date="Feb 24, 2026"
+            time="7:00 PM"
+            requiredPlayers="2 players"
+            phone="9803XXXXXX"
+            chatLink="/chat/temp-2"
+          />
+
+          <OpenGameCard
+            image={fieldFutsal}
+            name="Field Futsal"
+            date="Feb 24, 2026"
+            time="8:00 PM"
+            requiredPlayers="1 goalkeeper"
+            phone="9851XXXXXX"
+            chatLink="/chat/temp-3"
+          />
         </div>
       </section>
 
@@ -137,8 +168,8 @@ export default function Home() {
             lineHeight: "1.6",
           }}
         >
-          Sportify is a web-based futsal management system designed to solve common
-          problems in futsal booking, team formation, and communication.
+          Sportify is a web-based futsal management system designed to solve
+          common problems in futsal booking, team formation, and communication.
         </p>
 
         <div className="steps">
@@ -159,16 +190,12 @@ export default function Home() {
           />
         </div>
       </section>
-
     </div>
   );
 }
 
-
 /* ================= FEATURE CARD ================= */
-
 function FeatureCard({ icon, title, desc, to }) {
-
   const content = (
     <div className="feature-card">
       <div className="icon">{icon}</div>
@@ -181,13 +208,12 @@ function FeatureCard({ icon, title, desc, to }) {
     <Link to={to} className="feature-link">
       {content}
     </Link>
-  ) : content;
+  ) : (
+    content
+  );
 }
 
-
-
 /* ================= STEP CARD ================= */
-
 function StepCard({ step, title, desc }) {
   return (
     <div className="step-card">
@@ -197,33 +223,3 @@ function StepCard({ step, title, desc }) {
     </div>
   );
 }
-
-
-/* ================= FUTSAL CARD ================= */
-
-function FutsalCard({ image, name, location, desc }) {
-  return (
-    <Link to="/grounds" className="feature-link">
-      <div className="feature-card">
-        <img
-          src={image}
-          alt={name}
-          className="futsal-image"
-        />
-
-        <h4>{name}</h4>
-
-        <p style={{ fontSize: "14px", color: "#cbd5f5", marginBottom: "8px" }}>
-          <MapPin size={14} /> {location}
-        </p>
-
-        <p>{desc}</p>
-
-        <div style={{ marginTop: "10px", fontWeight: 700 }}>
-          Browse →
-        </div>
-      </div>
-    </Link>
-  );
-}
-
