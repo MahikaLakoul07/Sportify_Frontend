@@ -112,7 +112,7 @@ export default function JoinOpenGame() {
                   name="age"
                   value={form.age}
                   onChange={onChange}
-                  placeholder="e.g. 22"
+                  placeholder=" "
                 />
               </div>
 
@@ -132,7 +132,7 @@ export default function JoinOpenGame() {
                 name="phone"
                 value={form.phone}
                 onChange={onChange}
-                placeholder="98XXXXXXXX"
+                placeholder=" "
               />
               <div className="joj-hint">
                 (This can be hidden from public later — backend will control privacy.)
@@ -146,7 +146,7 @@ export default function JoinOpenGame() {
                 value={form.note}
                 onChange={onChange}
                 rows={4}
-                placeholder="Example: I can play full 1 hour, I usually defend..."
+                placeholder=" "
               />
             </div>
 
