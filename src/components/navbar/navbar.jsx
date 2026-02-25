@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import logo from "../../assets/logo.png";
@@ -6,12 +6,28 @@ import "./navbar.css";
 
 export default function Navbar() {
   const { user, isLoggedIn, logout } = useAuth();
+//   const user = { role: "OWNER" };
+// const isLoggedIn = true;
+// const logout = () => {};
   const navigate = useNavigate();
+
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
 
   const handleLogout = () => {
     logout();
-    navigate("/"); // go back to home after logout
+    navigate("/");
   };
+
+  // close dropdown if clicked outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   return (
     <nav className="navbar">
@@ -24,7 +40,6 @@ export default function Navbar() {
 
         {/* RIGHT SIDE - Navigation Links */}
         <div className="navbar-links">
-
           <Link to="/grounds">Grounds</Link>
 
           {!isLoggedIn && (
@@ -55,13 +70,55 @@ export default function Navbar() {
                 </Link>
               )}
 
-              {/* Logout Button */}
-              <button className="btn primary" onClick={handleLogout}>
-                Logout
-              </button>
+              {/* DROPDOWN MENU */}
+              <div className="dd" ref={menuRef}>
+                <button
+                  className="btn outline dd-btn"
+                  onClick={() => setOpen((p) => !p)}
+                  type="button"
+                >
+                  Menu <span className={`dd-caret ${open ? "up" : ""}`}>▾</span>
+                </button>
+
+                {open && (
+                  <div className="dd-menu">
+                    {/* OWNER MENU */}
+                    {user?.role === "OWNER" && (
+                      <>
+                        <Link to="/createground" className="dd-item strong">
+                          + Create Ground
+                        </Link>
+                        <Link to="/owner/grounds" className="dd-item">
+                          My Grounds
+                        </Link>
+                        <Link to="/owner/bookings" className="dd-item">
+                          Bookings
+                        </Link>
+                        <Link to="/owner/reports" className="dd-item">
+                          Reports
+                        </Link>
+                      </>
+                    )}
+
+                    {/* PLAYER MENU */}
+                    {user?.role === "PLAYER" && (
+                      <>
+                        <Link to="/mybookings" className="dd-item">
+                          My Bookings
+                        </Link>
+                      </>
+                    )}
+
+                    <div className="dd-divider" />
+
+                    <button className="dd-item danger" onClick={handleLogout} type="button">
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             </>
           )}
-
         </div>
       </div>
     </nav>
