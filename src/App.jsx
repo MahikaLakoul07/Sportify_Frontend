@@ -13,6 +13,10 @@ import BookGround from './pages/Bookings/BookGround';
 import MyBookings from './pages/Bookings/MyBookings';
 import MyBookingDetails from './pages/Bookings/MyBookingDetails';
 import "./App.css";
+import BrowseArena from './pages/BrowseArena/BrowseArena';
+import Checkout from './pages/Checkout/Checkout';
+import UserRequest from './pages/UserRequest/UserRequest';
+
 
 const App = () => {
   return (
@@ -22,12 +26,15 @@ const App = () => {
       <Route path='/' element={<Home/>} />
       <Route path='/login' element={<Login/>} />
       <Route path='/register' element={<Register/>} />
+      <Route path='/browsearena' element={<BrowseArena/>} />
       <Route path='/grounds' element={<Grounds/>} />
       <Route path='/createground' element={ <CreateGround />} />
       <Route path='/grounds/:id' element={<GroundDetails />} />
       <Route path='/grounds/:id/book' element={<BookGround />} />
       <Route path='/mybookings' element={<MyBookings />} />
       <Route path='/mybookings/:bookingId' element={<MyBookingDetails />} />
+      <Route path="/checkout" element={<Checkout />} />
+      <Route path="/userRequest" element={<UserRequest />} />
      </Routes>
     <Footer />
 
