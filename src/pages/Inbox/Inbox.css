@@ -1,0 +1,249 @@
+/* Inbox.css */
+
+.inbox-page {
+  min-height: 100vh;
+  background: #f6f7fb;
+  padding: 28px 14px;
+}
+
+.inbox-wrap {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+/* ===== Header ===== */
+.inbox-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.inbox-title {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0;
+  color: #101828;
+}
+
+.inbox-sub {
+  margin: 6px 0 0;
+  color: #667085;
+  font-size: 14px;
+}
+
+.inbox-linkBtn {
+  text-decoration: none;
+  background: #101828;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.inbox-linkBtn:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+/* ===== Card ===== */
+.inbox-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #eaecf0;
+  box-shadow: 0 10px 22px rgba(16, 24, 40, 0.06);
+  overflow: hidden;
+}
+
+/* ===== Toolbar ===== */
+.inbox-toolbar {
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #eaecf0;
+  background: #fbfcfe;
+}
+
+.inbox-tabs {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.inbox-tab {
+  border: 1px solid #eaecf0;
+  background: #fff;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 13px;
+  color: #344054;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.inbox-tab:hover {
+  transform: translateY(-1px);
+}
+
+.inbox-tab.active {
+  background: #101828;
+  color: #fff;
+  border-color: #101828;
+}
+
+.inbox-count {
+  font-size: 12px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(16, 24, 40, 0.08);
+}
+
+.inbox-tab.active .inbox-count {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== Search ===== */
+.inbox-search {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.inbox-search input {
+  width: min(360px, 100%);
+  border: 1px solid #eaecf0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+  transition: border 0.15s ease, box-shadow 0.15s ease;
+}
+
+.inbox-search input:focus {
+  border-color: #98a2b3;
+  box-shadow: 0 0 0 4px rgba(152, 162, 179, 0.25);
+}
+
+/* ===== List ===== */
+.inbox-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.inbox-row {
+  width: 100%;
+  border: 0;
+  background: #fff;
+  text-align: left;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+  border-bottom: 1px solid #f2f4f7;
+  transition: background 0.12s ease;
+}
+
+.inbox-row:hover {
+  background: #f9fafb;
+}
+
+.inbox-row:last-child {
+  border-bottom: 0;
+}
+
+/* ===== Avatar ===== */
+.inbox-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: #101828;
+  color: #fff;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+/* ===== Middle ===== */
+.inbox-mid {
+  min-width: 0;
+}
+
+.inbox-name {
+  font-size: 15px;
+  font-weight: 900;
+  color: #101828;
+  margin-bottom: 3px;
+}
+
+.inbox-last {
+  font-size: 13px;
+  color: #667085;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* ===== Right ===== */
+.inbox-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.inbox-time {
+  font-size: 12px;
+  color: #667085;
+  font-weight: 700;
+}
+
+.inbox-badge {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: #16a34a;
+  color: #fff;
+  font-weight: 900;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  .inbox-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .inbox-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .inbox-search {
+    justify-content: stretch;
+  }
+
+  .inbox-search input {
+    width: 100%;
+  }
+}
