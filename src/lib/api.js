@@ -1,69 +1,67 @@
-// 1) Base URL of backend API.
-// - First try to read it from .env (VITE_API_URL)
-// - If not found, use local backend default (localhost)
-const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+// src/lib/api.js
 
-// 2) Small helper: get JWT access token from browser storage.
-// If token exists, user is logged in.
+// 1️⃣ Get backend root from .env or fallback
+let BACKEND_ROOT =
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
+// 2️⃣ IMPORTANT FIX:
+// If .env accidentally includes "/api" at the end,
+// remove it to prevent double "/api/api" issue.
+BACKEND_ROOT = BACKEND_ROOT.replace(/\/api\/?$/, "");
+
+// 3️⃣ Get JWT token
 function getToken() {
-  return localStorage.getItem("accessToken");
+  return localStorage.getItem("access") || localStorage.getItem("accessToken");
 }
 
-// 3) apiFetch(): wrapper around fetch() that handles:
-// - Base URL + endpoint path
-// - JSON headers
-// - Auto attach JWT token (Authorization header)
-// - Safe JSON parsing
-// - Consistent error handling
 export async function apiFetch(path, options = {}) {
-  // Build final URL: BASE_URL + endpoint path
-  // Example: http://127.0.0.1:8000/api + /grounds/ => http://127.0.0.1:8000/api/grounds/
-  const url = `${BASE_URL}${path}`;
+  // 4️⃣ Always ensure path starts with "/"
+  const safePath = path.startsWith("/") ? path : `/${path}`;
 
-  // Default headers: we send JSON in most requests
-  // Merge additional headers if caller provides any
-  const headers = {
-    "Content-Type": "application/json",
-    ...(options.headers || {}),
-  };
+  // 5️⃣ Build final URL
+  const url = `${BACKEND_ROOT}${safePath}`;
 
-  // Attach JWT token (if logged in)
-  // Backend will use it to identify the user
+  console.log("🌍 API CALL:", url); // debug line (keep for now)
+
+  const headers = { ...(options.headers || {}) };
+
   const token = getToken();
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const isFormData = options.body instanceof FormData;
+
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+    if (options.body && typeof options.body !== "string") {
+      options.body = JSON.stringify(options.body);
+    }
   }
 
-  // Make the HTTP request
-  // Spread options so method/body/etc. are preserved
-  const res = await fetch(url, { ...options, headers });
+  const res = await fetch(url, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
 
-  // ---- Safe response parsing ----
-  // Read response as text first (works even if empty)
-  let data = null;
-  const text = await res.text();
+  const contentType = res.headers.get("content-type");
+  let data;
 
-  // If response contains JSON, parse it. If not, keep it as raw text.
-  try {
-    data = text ? JSON.parse(text) : null;
-  } catch {
-    data = text;
+  if (contentType && contentType.includes("application/json")) {
+    data = await res.json();
+  } else {
+    const text = await res.text();
+    data = text ? { detail: text } : {};
   }
 
-  // ---- Error handling ----
-  // res.ok means status code 200-299
-  // If not ok, throw an error with a useful message from backend
   if (!res.ok) {
-    // Django commonly returns { detail: "..." }
-    // Some APIs return { message: "..." }
     const msg =
-      (data && data.detail) ||
-      (data && data.message) ||
-      "Request failed";
+      data?.detail ||
+      data?.message ||
+      data?.error ||
+      `Request failed (${res.status})`;
 
     throw new Error(msg);
   }
 
-  // If everything is OK, return parsed data to the caller
   return data;
 }
