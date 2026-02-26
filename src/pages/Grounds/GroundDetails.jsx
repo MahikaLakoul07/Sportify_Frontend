@@ -4,6 +4,33 @@ import { useNavigate, useParams } from "react-router-dom";
 import { apiFetch } from "../../lib/api";
 import "./GroundDetails.css";
 
+// Fixed system slots (same for every ground)
+const FIXED_SLOTS = [
+  { start: "06:00", end: "07:00", label: "6:00 AM" },
+  { start: "07:00", end: "08:00", label: "7:00 AM" },
+  { start: "08:00", end: "09:00", label: "8:00 AM" },
+  { start: "09:00", end: "10:00", label: "9:00 AM" },
+  { start: "10:00", end: "11:00", label: "10:00 AM" },
+  { start: "11:00", end: "12:00", label: "11:00 AM" },
+  { start: "12:00", end: "13:00", label: "12:00 PM" },
+  { start: "13:00", end: "14:00", label: "1:00 PM" },
+  { start: "14:00", end: "15:00", label: "2:00 PM" },
+  { start: "15:00", end: "16:00", label: "3:00 PM" },
+  { start: "16:00", end: "17:00", label: "4:00 PM" },
+  { start: "17:00", end: "18:00", label: "5:00 PM" },
+  { start: "18:00", end: "19:00", label: "6:00 PM" },
+];
+
+const slotKey = (start, end) => `${start}-${end}`;
+
+// safer YYYY-MM-DD for local date (avoids toISOString() UTC shifting)
+const ymdLocal = (d) => {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
 export default function GroundDetails() {
   const { id } = useParams();
   const nav = useNavigate();
@@ -14,14 +41,20 @@ export default function GroundDetails() {
 
   // UI state
   const [activeCourtId, setActiveCourtId] = useState(null);
-  const [selectedSlot, setSelectedSlot] = useState(null); // { dayLabel, timeLabel, dateISO }
+  // selectedSlot now includes backend times
+  // { dayLabel, timeLabel, dateISO, dateYMD, start_time, end_time }
+  const [selectedSlot, setSelectedSlot] = useState(null);
   const [promo, setPromo] = useState("");
 
-  // date nav (simple)
+  // date nav
   const [baseDate, setBaseDate] = useState(() => new Date());
 
+  // Slot statuses for each date:
+  // slotMap["YYYY-MM-DD"]["06:00-07:00"] = { available: true, booked: false }
+  const [slotMap, setSlotMap] = useState({});
+
   // -----------------------------
-  // ✅ Fetch ground from backend
+  // Fetch ground from backend
   // -----------------------------
   useEffect(() => {
     const load = async () => {
@@ -29,10 +62,8 @@ export default function GroundDetails() {
       setErr("");
 
       try {
-        // If your backend route is /api/grounds/:id/ then change to `/api/grounds/${id}/`
         const data = await apiFetch(`/api/grounds/${id}/`, { method: "GET" });
 
-        // Map backend -> UI shape (so your existing UI stays same)
         const mapped = {
           id: data.id,
           name: data.name,
@@ -63,7 +94,7 @@ export default function GroundDetails() {
       }
     };
 
-    load();
+    if (id) load();
   }, [id]);
 
   const activeCourt = useMemo(() => {
@@ -71,22 +102,7 @@ export default function GroundDetails() {
     return ground.courts.find((c) => c.id === activeCourtId) || ground.courts[0];
   }, [ground, activeCourtId]);
 
-  // -----------------------------
-  // Schedule mock (for now)
-  // Later we connect this to availability API
-  // -----------------------------
-  const timeRows = [
-    "6:00 AM",
-    "7:00 AM",
-    "8:00 AM",
-    "9:00 AM",
-    "10:00 AM",
-    "11:00 AM",
-    "12:00 PM",
-    "1:00 PM",
-    "2:00 PM",
-    "3:00 PM",
-  ];
+  const timeRows = useMemo(() => FIXED_SLOTS.map((s) => s.label), []);
 
   const days = useMemo(() => {
     const arr = [];
@@ -101,7 +117,57 @@ export default function GroundDetails() {
   const formatDay = (d) => d.toLocaleDateString(undefined, { weekday: "short" });
   const formatDateNum = (d) => d.getDate();
   const formatMonthTitle = (d) =>
-    d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+    d.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+
+  // -----------------------------
+  // Fetch real slot statuses for visible 7 days
+  // GET /api/grounds/:id/slots/?date=YYYY-MM-DD
+  // Backend should read date from request.query_params. [web:84]
+  // -----------------------------
+  useEffect(() => {
+    if (!id) return;
+
+    const controller = new AbortController();
+
+    const loadSlots = async () => {
+      try {
+        const results = await Promise.all(
+          days.map(async (d) => {
+            const date = ymdLocal(d);
+            const url = `/api/grounds/${id}/slots/?date=${date}`;
+            const data = await apiFetch(url, { method: "GET", signal: controller.signal });
+            return { date, data };
+          })
+        );
+
+        setSlotMap((prev) => {
+          const next = { ...prev };
+          for (const { date, data } of results) {
+            const m = {};
+            for (const s of data?.slots || []) {
+              m[slotKey(s.start_time, s.end_time)] = {
+                available: !!s.available,
+                booked: !!s.booked,
+              };
+            }
+            next[date] = m;
+          }
+          return next;
+        });
+      } catch (e) {
+        // Abort is fine (baseDate changed quickly)
+        if (e?.name === "AbortError") return;
+        console.error(e);
+      }
+    };
+
+    loadSlots();
+    return () => controller.abort();
+  }, [id, days]);
 
   const getCellStatus = (dayIndex, timeIndex) => {
     const today = new Date();
@@ -113,14 +179,15 @@ export default function GroundDetails() {
 
     if (isPast) return "PAST";
 
-    const seed =
-      (dayIndex + 1) * 17 +
-      (timeIndex + 1) * 11 +
-      (activeCourtId === "7A" ? 9 : 0);
+    const slot = FIXED_SLOTS[timeIndex];
+    const date = ymdLocal(day);
 
-    if (seed % 9 === 0) return "BOOKED";
+    const info = slotMap?.[date]?.[slotKey(slot.start, slot.end)];
 
-    return "AVAILABLE";
+    if (!info) return "LOADING";
+    if (info.booked) return "BOOKED";
+    if (info.available) return "AVAILABLE";
+    return "CLOSED";
   };
 
   const onPickSlot = (dayIndex, timeIndex) => {
@@ -128,13 +195,18 @@ export default function GroundDetails() {
     if (status !== "AVAILABLE") return;
 
     const day = days[dayIndex];
+    const slot = FIXED_SLOTS[timeIndex];
+
     setSelectedSlot({
       dayLabel: `${formatDay(day)}, ${day.toLocaleDateString(undefined, {
         month: "short",
         day: "numeric",
       })}`,
-      timeLabel: timeRows[timeIndex],
+      timeLabel: slot.label,
       dateISO: day.toISOString(),
+      dateYMD: ymdLocal(day),
+      start_time: slot.start,
+      end_time: slot.end,
     });
   };
 
@@ -209,6 +281,7 @@ export default function GroundDetails() {
                     const d = new Date(baseDate);
                     d.setDate(d.getDate() - 7);
                     setBaseDate(d);
+                    setSelectedSlot(null);
                   }}
                 >
                   ‹
@@ -227,6 +300,9 @@ export default function GroundDetails() {
                     <span>
                       <i className="dot selected" /> Selected
                     </span>
+                    <span>
+                      <i className="dot past" /> Past
+                    </span>
                   </div>
                 </div>
 
@@ -236,6 +312,7 @@ export default function GroundDetails() {
                     const d = new Date(baseDate);
                     d.setDate(d.getDate() + 7);
                     setBaseDate(d);
+                    setSelectedSlot(null);
                   }}
                 >
                   ›
@@ -258,18 +335,24 @@ export default function GroundDetails() {
                 {timeRows.map((t, timeIndex) => (
                   <div key={t} className="gd-row">
                     <div className="gd-timeCell">{t}</div>
+
                     {days.map((d, dayIndex) => {
                       const status = getCellStatus(dayIndex, timeIndex);
+
                       const isSelected =
                         selectedSlot &&
                         selectedSlot.timeLabel === t &&
-                        new Date(selectedSlot.dateISO).toDateString() === d.toDateString();
+                        selectedSlot.dateYMD === ymdLocal(d);
 
                       const cls =
                         status === "PAST"
                           ? "cell past"
                           : status === "BOOKED"
                           ? "cell booked"
+                          : status === "CLOSED"
+                          ? "cell past"
+                          : status === "LOADING"
+                          ? "cell past"
                           : isSelected
                           ? "cell selected"
                           : "cell available";
@@ -279,16 +362,23 @@ export default function GroundDetails() {
                           ? "Past"
                           : status === "BOOKED"
                           ? "Booked"
+                          : status === "CLOSED"
+                          ? "Closed"
+                          : status === "LOADING"
+                          ? "..."
                           : isSelected
                           ? "Selected"
                           : "Available";
+
+                      const disabled =
+                        status !== "AVAILABLE" && !isSelected; // cannot click booked/closed/past/loading
 
                       return (
                         <button
                           key={dayIndex}
                           className={cls}
                           onClick={() => onPickSlot(dayIndex, timeIndex)}
-                          disabled={status !== "AVAILABLE" && !isSelected}
+                          disabled={disabled}
                         >
                           {label}
                         </button>
@@ -320,7 +410,9 @@ export default function GroundDetails() {
                     <span className="pillSmall">{activeCourt?.courtName}</span>
                   </div>
                   <div className="muted">
-                    {selectedSlot ? selectedSlot.dayLabel : "Select a slot from the table"}
+                    {selectedSlot
+                      ? selectedSlot.dayLabel
+                      : "Select a slot from the table"}
                   </div>
                 </div>
 
@@ -356,7 +448,10 @@ export default function GroundDetails() {
                   onChange={(e) => setPromo(e.target.value)}
                   placeholder="Enter promo code"
                 />
-                <button className="applyBtn" onClick={() => alert("Promo logic later")}>
+                <button
+                  className="applyBtn"
+                  onClick={() => alert("Promo logic later")}
+                >
                   Apply
                 </button>
               </div>
@@ -376,6 +471,9 @@ export default function GroundDetails() {
                       dateLabel: selectedSlot.dayLabel,
                       timeLabel: selectedSlot.timeLabel,
                       dateISO: selectedSlot.dateISO,
+                      dateYMD: selectedSlot.dateYMD,
+                      start_time: selectedSlot.start_time,
+                      end_time: selectedSlot.end_time,
                       price,
                       groundId: ground.id,
                       courtId: activeCourt?.id,
@@ -386,7 +484,9 @@ export default function GroundDetails() {
                 Continue to Checkout
               </button>
 
-              <div className="finePrint">Only 20% payment required to confirm booking</div>
+              <div className="finePrint">
+                Only 20% payment required to confirm booking
+              </div>
             </div>
           </div>
         </div>
