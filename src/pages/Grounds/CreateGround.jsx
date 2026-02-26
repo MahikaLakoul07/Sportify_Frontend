@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CreateGround.css";
 import { apiFetch } from "../../api";
@@ -19,6 +19,9 @@ function emptyWindow() {
 
 export default function CreateGround() {
   const navigate = useNavigate();
+
+  // ✅ NEW: file input ref so we can reset it
+  const fileRef = useRef(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -46,12 +49,35 @@ export default function CreateGround() {
   const onChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
+  // ✅ UPDATED: safely replace preview (revoke old one)
   const onImageChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
+
     setImage(file);
-    setPreview(URL.createObjectURL(file));
+
+    setPreview((old) => {
+      if (old) URL.revokeObjectURL(old);
+      return URL.createObjectURL(file);
+    });
   };
+
+  // remove image handler (cross button uses this)
+  const removeImage = () => {
+    if (preview) URL.revokeObjectURL(preview);
+    setImage(null);
+    setPreview(null);
+
+    // reset file input so you can select same file again
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  // cleanup preview on unmount
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   // Availability helpers
   const addWindow = (day) => {
@@ -139,8 +165,9 @@ export default function CreateGround() {
         phone: "",
         ground_size: "FIVE",
       });
-      setImage(null);
-      setPreview(null);
+
+      // reset image properly
+      removeImage();
 
       // reset availability
       const reset = {};
@@ -245,108 +272,38 @@ export default function CreateGround() {
               />
             </div>
 
+            {/* image input + remove button */}
             <div style={{ marginTop: 18 }}>
               <label className="createGround-label">Ground Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={onImageChange}
-                className="input"
-              />
+
+              <div className="createGround-fileRow">
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={onImageChange}
+                  className="input"
+                />
+              </div>
             </div>
 
+            {/* UPDATED: preview with cross (×) */}
             {preview && (
-              <div className="createGround-preview">
+              <div className="createGround-preview createGround-previewWrap">
                 <img src={preview} alt="Preview" />
+
+                <button
+                  type="button"
+                  className="createGround-previewX"
+                  onClick={removeImage}
+                  aria-label="Remove image"
+                  title="Remove image"
+                >
+                  ×
+                </button>
               </div>
             )}
 
-            {/* ✅ Weekly Availability UI */}
-            <div style={{ marginTop: 18 }}>
-              <label className="createGround-label">Weekly Availability</label>
-              <div className="card-soft" style={{ padding: 14 }}>
-                <div className="p" style={{ marginTop: 0 }}>
-                  Add your available time windows for each day. Players will only
-                  be able to book inside these timings.
-                </div>
-
-                {DAYS.map((d) => (
-                  <div key={d.value} style={{ marginTop: 14 }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: 10,
-                      }}
-                    >
-                      <div style={{ fontWeight: 700 }}>{d.label}</div>
-                      <button
-                        type="button"
-                        className="btn outline"
-                        onClick={() => addWindow(d.value)}
-                      >
-                        + Add Slot
-                      </button>
-                    </div>
-
-                    {availability[d.value].length === 0 ? (
-                      <div className="p" style={{ marginTop: 8, opacity: 0.8 }}>
-                        No slots added
-                      </div>
-                    ) : (
-                      <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
-                        {availability[d.value].map((w, idx) => (
-                          <div
-                            key={`${d.value}-${idx}`}
-                            style={{
-                              display: "grid",
-                              gridTemplateColumns: "1fr 1fr auto",
-                              gap: 10,
-                              alignItems: "center",
-                            }}
-                          >
-                            <input
-                              className="input"
-                              type="time"
-                              value={w.start_time}
-                              onChange={(e) =>
-                                updateWindow(
-                                  d.value,
-                                  idx,
-                                  "start_time",
-                                  e.target.value
-                                )
-                              }
-                            />
-                            <input
-                              className="input"
-                              type="time"
-                              value={w.end_time}
-                              onChange={(e) =>
-                                updateWindow(
-                                  d.value,
-                                  idx,
-                                  "end_time",
-                                  e.target.value
-                                )
-                              }
-                            />
-                            <button
-                              type="button"
-                              className="btn outline"
-                              onClick={() => removeWindow(d.value, idx)}
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
 
             {err && <div className="createGround-error">{err}</div>}
             {success && <div className="createGround-success">{success}</div>}
