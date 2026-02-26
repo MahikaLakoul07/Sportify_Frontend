@@ -441,21 +441,6 @@ export default function GroundDetails() {
                 <div className="payNow">NPR {payNow.toFixed(2)}</div>
               </div>
 
-              <div className="promoRow">
-                <input
-                  className="promoInput"
-                  value={promo}
-                  onChange={(e) => setPromo(e.target.value)}
-                  placeholder="Enter promo code"
-                />
-                <button
-                  className="applyBtn"
-                  onClick={() => alert("Promo logic later")}
-                >
-                  Apply
-                </button>
-              </div>
-
               <button
                 className="checkoutBtn"
                 disabled={!selectedSlot}
