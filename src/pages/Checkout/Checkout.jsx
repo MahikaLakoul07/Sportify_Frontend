@@ -2,20 +2,32 @@ import React, { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Checkout.css";
 
+const DEPOSIT_RATE = 0.2;
+
 export default function Checkout() {
   const nav = useNavigate();
   const { state } = useLocation();
 
-  // GroundDetails:
+  // Expected from GroundDetails:
   // nav("/checkout", { state: { groundName, location, courtLabel, courtName, dateLabel, timeLabel, price } })
-
   const data = state || {};
 
   const price = Number(data.price || 0);
-  const payNowAmt = useMemo(() => Math.round(price * 0.2), [price]);
-  const payAtVenue = useMemo(() => price - payNowAmt, [price, payNowAmt]);
 
-  const [paymentMode, setPaymentMode] = useState("PAY_NOW"); // PAY_NOW / PAY_LATER
+  // ✅ Deposit is ALWAYS compulsory
+  const depositAmt = useMemo(() => {
+    // keep 2 decimals
+    return Math.round(price * DEPOSIT_RATE * 100) / 100;
+  }, [price]);
+
+  const remainingAmt = useMemo(() => {
+    return Math.max(0, Math.round((price - depositAmt) * 100) / 100);
+  }, [price, depositAmt]);
+
+  // ✅ Modes now mean:
+  // PAY_NOW   => pay 100% now
+  // PAY_VENUE => pay only 20% now, rest at venue
+  const [paymentMode, setPaymentMode] = useState("PAY_VENUE"); // PAY_NOW / PAY_VENUE
   const [promo, setPromo] = useState("");
 
   const [form, setForm] = useState({
@@ -25,16 +37,33 @@ export default function Checkout() {
     note: "",
   });
 
-  const onChange = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const onChange = (e) =>
+    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   const onApplyPromo = () => {
     alert("Promo logic later 🙂");
   };
 
+  // ✅ Derived amounts based on mode
+  const payNowTotal = paymentMode === "PAY_NOW" ? price : depositAmt;
+  const payAtVenueTotal = paymentMode === "PAY_NOW" ? 0 : remainingAmt;
+
   const onPlaceBooking = () => {
-    // Later you will call backend:
-    // POST /bookings/  { ground_id, court, date, time, payment_mode, customer... }
-    alert("Booking placed (mock). Next: connect backend API.");
+    // Later connect backend:
+    // POST /bookings/
+    // {
+    //   ground_id, date, time,
+    //   deposit_required: true,
+    //   payment_mode: paymentMode,
+    //   charge_now: payNowTotal,
+    //   pay_at_venue: payAtVenueTotal,
+    //   customer: form...
+    // }
+    alert(
+      `Booking placed (mock)\n\nMode: ${paymentMode}\nPay Now: NPR ${payNowTotal.toFixed(
+        2
+      )}\nPay at Venue: NPR ${payAtVenueTotal.toFixed(2)}`
+    );
     nav("/");
   };
 
@@ -44,7 +73,9 @@ export default function Checkout() {
     <div className="co-page">
       <div className="co-wrap">
         <div className="co-top">
-          <button className="co-back" onClick={() => nav(-1)}>← Back</button>
+          <button className="co-back" onClick={() => nav(-1)}>
+            ← Back
+          </button>
           <div>
             <h1 className="co-title">Checkout</h1>
             <div className="co-sub">Confirm details and complete booking</div>
@@ -70,7 +101,8 @@ export default function Checkout() {
                   <div className="sumMuted">📍 {data.location || "—"}</div>
                 </div>
                 <div className="sumTag">
-                  {data.courtLabel || "—"} <span className="pill">{data.courtName || "—"}</span>
+                  {data.courtLabel || "—"}{" "}
+                  <span className="pill">{data.courtName || "—"}</span>
                 </div>
               </div>
 
@@ -144,38 +176,63 @@ export default function Checkout() {
             <div className="co-card">
               <div className="co-cardTitle">Payment</div>
 
+              {/* ✅ Compulsory Deposit Banner */}
+              <div className="depositNotice">
+                <div className="depositLeft">
+                  <span className="depositBadge">Compulsory</span>
+                  <div className="depositText">
+                    20% deposit is required to confirm booking.
+                  </div>
+                </div>
+                <div className="depositAmt">NPR {depositAmt.toFixed(2)}</div>
+              </div>
+
               <div className="payChoices">
+                {/* ✅ Pay full now */}
                 <button
-                  className={`payChoice ${paymentMode === "PAY_NOW" ? "active" : ""}`}
+                  type="button"
+                  className={`payChoice ${
+                    paymentMode === "PAY_NOW" ? "active" : ""
+                  }`}
                   onClick={() => setPaymentMode("PAY_NOW")}
                 >
                   <div className="payChoiceTop">
-                    <strong>Pay Now (20%)</strong>
-                    <span>NPR {payNowAmt.toFixed(2)}</span>
+                    <strong>Pay Now (100%)</strong>
+                    <span>NPR {price.toFixed(2)}</span>
                   </div>
-                  <div className="muted">Confirm booking instantly</div>
+                  <div className="muted">Pay full amount online now</div>
+                  <div className="helpText">
+                    Deposit included. Pay at venue: NPR 0.00
+                  </div>
                 </button>
 
+                {/* ✅ Pay deposit now, rest at venue */}
                 <button
-                  className={`payChoice ${paymentMode === "PAY_LATER" ? "active" : ""}`}
-                  onClick={() => setPaymentMode("PAY_LATER")}
+                  type="button"
+                  className={`payChoice ${
+                    paymentMode === "PAY_VENUE" ? "active" : ""
+                  }`}
+                  onClick={() => setPaymentMode("PAY_VENUE")}
                 >
                   <div className="payChoiceTop">
                     <strong>Pay at Venue</strong>
-                    <span>NPR {price.toFixed(2)}</span>
+                    <span>NPR {depositAmt.toFixed(2)}</span>
                   </div>
-                  <div className="muted">Pay full amount on arrival</div>
+                  <div className="muted">
+                    Pay 20% now, remaining 80% at venue
+                  </div>
+                  <div className="helpText">
+                    Remaining at venue: NPR {remainingAmt.toFixed(2)}
+                  </div>
                 </button>
               </div>
 
+              {/* Promo (optional) */}
               <div className="promoRow">
-                <input
-                  className="promoInput"
-                  value={promo}
-                  onChange={(e) => setPromo(e.target.value)}
-                  placeholder="Enter promo code"
-                />
-                <button className="applyBtn" onClick={onApplyPromo}>Apply</button>
+                {/* If you later add an input again, you can use promo + setPromo */}
+                <button className="applyBtn" type="button" onClick={onApplyPromo}>
+                  Apply
+                </button>
               </div>
             </div>
           </div>
@@ -190,23 +247,27 @@ export default function Checkout() {
                 <strong>NPR {price.toFixed(2)}</strong>
               </div>
 
+              {/* ✅ Always show compulsory deposit */}
               <div className="sideLine">
-                <span>Pay Now</span>
-                <strong>NPR {(paymentMode === "PAY_NOW" ? payNowAmt : 0).toFixed(2)}</strong>
+                <span>Compulsory Deposit (20%)</span>
+                <strong>NPR {depositAmt.toFixed(2)}</strong>
               </div>
 
               <div className="sideLine">
                 <span>Pay at Venue</span>
-                <strong>
-                  NPR {(paymentMode === "PAY_NOW" ? payAtVenue : price).toFixed(2)}
-                </strong>
+                <strong>NPR {payAtVenueTotal.toFixed(2)}</strong>
+              </div>
+
+               <div className="sideLine">
+                <span>Pay Now</span>
+                <strong>NPR {payNowTotal.toFixed(2)}</strong>
               </div>
 
               <div className="divider" />
 
               <button
                 className="placeBtn"
-                disabled={missingSelection || !form.full_name || !form.phone}
+                disabled={missingSelection || !form.full_name.trim() || !form.phone.trim()}
                 onClick={onPlaceBooking}
               >
                 Place Booking

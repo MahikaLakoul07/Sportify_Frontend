@@ -250,3 +250,49 @@
   .payChoices{ grid-template-columns: 1fr; }
   .sumGrid{ grid-template-columns: 1fr; }
 }
+
+/* ✅ NEW: Compulsory deposit banner */
+.depositNotice{
+  border: 1px solid rgba(69, 255, 190, .22);
+  background: rgba(69, 255, 190, .08);
+  padding: 12px;
+  border-radius: 14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.depositLeft{
+  display:flex;
+  gap: 10px;
+  align-items:center;
+}
+
+.depositBadge{
+  font-size: 11px;
+  font-weight: 1000;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(69, 255, 190, .12);
+  border: 1px solid rgba(69, 255, 190, .25);
+  color: rgba(255,255,255,.92);
+}
+
+.depositText{
+  font-weight: 900;
+  color: rgba(255,255,255,.92);
+}
+
+.depositAmt{
+  font-weight: 1000;
+  color: rgba(255,255,255,.95);
+}
+
+/* Optional tiny helper text */
+.helpText{
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 6px;
+}
