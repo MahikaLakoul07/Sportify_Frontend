@@ -16,7 +16,12 @@ import "./App.css";
 import BrowseArena from './pages/BrowseArena/BrowseArena';
 import Checkout from './pages/Checkout/Checkout';
 import UserRequest from './pages/UserRequest/UserRequest';
-
+import Inbox from './pages/Inbox/Inbox';
+import Chat from './pages/Chat/Chat';
+import PlayerProfile from './pages/Profile/PlayerProfile';
+import Notifications from './pages/Notifications/Notifications';
+import PaymentSuccess from './pages/PaymentFailure.jsx';
+import PaymentFailure from './pages/PaymentFailure.jsx';
 
 const App = () => {
   return (
@@ -35,6 +40,12 @@ const App = () => {
       <Route path='/mybookings/:bookingId' element={<MyBookingDetails />} />
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/userRequest" element={<UserRequest />} />
+      <Route path="/Inbox" element={<Inbox />} />
+      <Route path="/chat" element={<Chat />} />
+      <Route path="/PlayerProfile" element={<PlayerProfile />} />
+      <Route path="/Notifications" element={<Notifications />} />
+      <Route path="/payment/success" element={<PaymentSuccess />} />
+      <Route path="/payment/failure" element={<PaymentFailure />} />
      </Routes>
     <Footer />
 

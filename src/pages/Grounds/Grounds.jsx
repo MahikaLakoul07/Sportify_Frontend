@@ -21,12 +21,12 @@ export default function Grounds() {
     try {
       const qs = new URLSearchParams();
 
-      // ✅ Backend-friendly params (your UI uses these)
+      // Backend-friendly params (UI uses these)
       if (filters.location) qs.append("search", filters.location);
       if (filters.date) qs.append("date", filters.date);
       if (filters.max_price) qs.append("max_price", filters.max_price);
 
-      // ✅ FIXED: use /api/grounds/ (your backend endpoint)
+      // use /api/grounds
       const url = qs.toString()
         ? `/api/grounds/?${qs.toString()}`
         : "/api/grounds/";
@@ -116,7 +116,7 @@ export default function Grounds() {
               const price = g.price_per_hour ?? g.price;
               const desc = g.description || "";
 
-              // ✅ FIXED: backend sends image_url (full absolute URL)
+              // backend sends image_url 
               const image =
                 g.image_url ||
                 "https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=1600&q=70";
