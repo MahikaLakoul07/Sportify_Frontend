@@ -84,75 +84,91 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ================= FEATURED GROUNDS ================= */}
+     {/* ================= FEATURED GROUNDS ================= */}
       <section className="features">
         <h3>Featured Futsal Grounds</h3>
 
         <div className="feature-grid">
-          <GroundCard
-            image={dhukuFutsalHub}
-            name="Dhuku Futsal Hub"
-            location="Kathmandu"
-            desc="Modern futsal ground with premium turf and night lighting."
-          />
+          <div className="featured-wrap">
+            <GroundCard
+              id="featured-1"
+              image={dhukuFutsalHub}
+              name="Dhuku Futsal Hub"
+              location="Kathmandu"
+              desc="Modern futsal ground with premium turf and night lighting."
+              to="/grounds"
+            />
+          </div>
 
-          <GroundCard
-            image={khelkunjArena}
-            name="Khelkunj Arena"
-            location="Pokhara"
-            desc="Popular futsal venue with flexible slots and easy parking."
-          />
+          <div className="featured-wrap">
+            <GroundCard
+              id="featured-2"
+              image={khelkunjArena}
+              name="Khelkunj Arena"
+              location="Pokhara"
+              desc="Popular futsal venue with flexible slots and easy parking."
+              to="/grounds"
+            />
+          </div>
 
-          <GroundCard
-            image={fieldFutsal}
-            name="Field Futsal"
-            location="Lalitpur"
-            desc="Well-maintained ground ideal for competitive and friendly matches."
-          />
+          <div className="featured-wrap">
+            <GroundCard
+              id="featured-3"
+              image={fieldFutsal}
+              name="Field Futsal"
+              location="Lalitpur"
+              desc="Well-maintained ground ideal for competitive and friendly matches."
+              to="/grounds"
+            />
+          </div>
         </div>
       </section>
 
       {/* ================= OPEN GAMES (TODAY) ================= */}
       <section className="features">
         <div className="section-head">
-          <h3>Open Games (Today)</h3>
-          <Link to="/open-games" className="btn outline">
-            View All
-          </Link>
-        </div>
+        <h3>Open Games (Today)</h3>
+      </div>
 
-        <div className="feature-grid">
-          <OpenGameCard
-            image={dhukuFutsalHub}
-            name="Dhuku Futsal Hub"
-            date="Feb 24, 2026"
-            time="6:00 PM"
-            requiredPlayers="3 players"
-            phone="9841XXXXXX"
-            chatLink="/chat/temp-1"
-          />
+      <div className="feature-grid">
+        <OpenGameCard
+          image={dhukuFutsalHub}
+          name="Dhuku Futsal Hub"
+          date="Feb 24, 2026"
+          time="6:00 PM"
+          requiredPlayers="3 players"
+          phone="9841XXXXXX"
+          chatLink="/chat/temp-1"
+        />
 
-          <OpenGameCard
-            image={khelkunjArena}
-            name="Khelkunj Arena"
-            date="Feb 24, 2026"
-            time="7:00 PM"
-            requiredPlayers="2 players"
-            phone="9803XXXXXX"
-            chatLink="/chat/temp-2"
-          />
+        <OpenGameCard
+          image={khelkunjArena}
+          name="Khelkunj Arena"
+          date="Feb 24, 2026"
+          time="7:00 PM"
+          requiredPlayers="2 players"
+          phone="9803XXXXXX"
+          chatLink="/chat/temp-2"
+        />
 
-          <OpenGameCard
-            image={fieldFutsal}
-            name="Field Futsal"
-            date="Feb 24, 2026"
-            time="8:00 PM"
-            requiredPlayers="1 goalkeeper"
-            phone="9851XXXXXX"
-            chatLink="/chat/temp-3"
-          />
-        </div>
-      </section>
+        <OpenGameCard
+          image={fieldFutsal}
+          name="Field Futsal"
+          date="Feb 24, 2026"
+          time="8:00 PM"
+          requiredPlayers="1 goalkeeper"
+          phone="9851XXXXXX"
+          chatLink="/chat/temp-3"
+        />
+      </div>
+
+      {/* View All at bottom */}
+      <div className="section-foot">
+        <Link to="/open-games" className="btn outline">
+          View All
+        </Link>
+      </div>
+    </section>
 
       {/* ================= HOW IT WORKS ================= */}
       <section id="how" className="how">

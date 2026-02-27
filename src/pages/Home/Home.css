@@ -199,18 +199,43 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-.futsal-image {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  border-radius: 16px;
-  margin-bottom: 16px;
-}
-
-.feature-card img {
-  transition: transform 0.4s ease;
-}
 
 .feature-card:hover img {
   transform: scale(1.05);
 } 
+
+/* Section header + footer controls */
+.section-head {
+  max-width: 1200px;
+  margin: 0 auto 32px;
+  text-align: center;
+}
+
+.section-foot {
+  max-width: 1200px;
+  margin: 32px auto 0;
+  display: flex;
+  justify-content: center; /* center the button */
+}
+
+/* Featured GroundCard wrapper (forces image to show nicely) */
+.featured-wrap {
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+/* If GroundCard image has an <img> tag, this will style it */
+.featured-wrap img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+/* If your GroundCard uses a div background image instead of img, add this too */
+.featured-wrap .groundCard__image,
+.featured-wrap .ground-card__image {
+  height: 220px;
+  background-size: cover;
+  background-position: center;
+}

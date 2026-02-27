@@ -1,3 +1,5 @@
+// src/components/GroundCard/GroundCard.jsx
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { MapPin } from "lucide-react";
@@ -16,42 +18,52 @@ export default function GroundCard({
 
   const getImageUrl = (img) => {
     if (!img) return "/default-futsal.png";
+
+    // Full URL already
     if (img.startsWith("http://") || img.startsWith("https://")) return img;
-    if (img.startsWith("/")) return base + img;       // "/media/..."
-    return base + "/media/" + img;                    // "grounds/..."
+
+    // Frontend assets (Vite build)
+    if (img.startsWith("/assets/") || img.startsWith("/src/")) return img;
+
+    // Backend media (like /media/grounds/xxx.jpg)
+    if (img.startsWith("/media/")) return base + img;
+
+    // Backend relative path (like "grounds/xxx.jpg")
+    return base + "/media/" + img;
   };
 
   return (
-    <Link to={to || `/grounds/${id}`} className="feature-link">
-      <div className="feature-card">
+    <Link to={to || `/grounds/${id}`} className="gc-link">
+      <div className="gc-card">
         {/* IMAGE */}
-        <img
-          src={getImageUrl(image)}
-          alt={name}
-          className="futsal-image"
-          onError={(e) => {
-            e.currentTarget.src = "/default-futsal.png";
-          }}
-        />
+        <div className="gc-imgWrap">
+          <img
+            src={getImageUrl(image)}
+            alt={name}
+            className="gc-img"
+            onError={(e) => {
+              e.currentTarget.src = "/default-futsal.png";
+            }}
+          />
+        </div>
 
-        {/* NAME */}
-        <h4>{name}</h4>
+        {/* CONTENT */}
+        <div className="gc-body">
+          <h4 className="gc-title">{name}</h4>
 
-        {/* LOCATION */}
-        <p className="futsal-location">
-          <MapPin size={14} /> {location}
-        </p>
+          <div className="gc-loc">
+            <MapPin size={14} />
+            <span>{location}</span>
+          </div>
 
-        {/* DESCRIPTION */}
-        {desc && <p>{desc}</p>}
+          {desc && <p className="gc-desc">{desc}</p>}
 
-        {/* PRICE */}
-        {price !== undefined && price !== null && price !== "" && (
-          <div className="futsal-price">Rs {price}</div>
-        )}
+          {price !== undefined && price !== null && price !== "" && (
+            <div className="gc-price">Rs {price}</div>
+          )}
 
-        {/* CTA */}
-        <div className="futsal-cta">View Details →</div>
+          <div className="gc-cta">View Details →</div>
+        </div>
       </div>
     </Link>
   );
