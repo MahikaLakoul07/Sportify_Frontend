@@ -1,0 +1,163 @@
+.ownerDash {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+  min-height: calc(100vh - 120px);
+  color: #ffffff;
+}
+
+/* HEADER */
+.ownerDash__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0f172a;
+  border: 1px solid rgba(203,213,245,0.15);
+  border-radius: 22px;
+  padding: 30px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+}
+
+.ownerDash__header h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 900;
+}
+
+.ownerDash__header p {
+  margin-top: 10px;
+  color: #cbd5f5;
+  font-size: 15px;
+}
+
+/* BUTTON */
+.primaryBtn {
+  background: #10b981;
+  color: #06131f;
+  font-weight: 800;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.primaryBtn:hover {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+/* STATS ROW */
+.statsRow {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+/* DIFFERENT LOOK FROM OTHER CARDS */
+.statCard {
+  background: linear-gradient(145deg, #0b1220, #111a2f);
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid rgba(16,185,129,0.25);
+  position: relative;
+  overflow: hidden;
+  transition: 0.25s ease;
+}
+
+/* TOP GREEN ACCENT BAR */
+.statCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+/* Hover glow */
+.statCard:hover {
+  border-color: rgba(52,211,153,0.5);
+  transform: translateY(-4px);
+}
+
+/* LABEL */
+.statCard span {
+  font-size: 13px;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+}
+
+/* BIG NUMBER */
+.statCard h2 {
+  margin: 14px 0 6px;
+  font-size: 34px;
+  font-weight: 900;
+  color: #34d399;
+}
+
+/* SUBTEXT */
+.statCard small {
+  color: #64748b;
+  font-size: 12px;
+}
+
+/* MAIN GRID */
+.ownerDash__grid {
+  margin-top: 35px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+}
+
+.card {
+  background: #0f172a;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid rgba(203,213,245,0.12);
+  cursor: pointer;
+  transition: 0.2s ease;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(52,211,153,0.4);
+}
+
+.card h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.card p {
+  margin: 0 0 16px;
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.linkish {
+  color: #34d399;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* QUICK TIP */
+.card.ghost {
+  background: #111827;
+  cursor: default;
+  border: 1px solid rgba(203,213,245,0.08);
+}
+
+.card.ghost h3 {
+  color: #ffffff;
+}
+
+.card.ghost p {
+  color: #cbd5f5;
+}
