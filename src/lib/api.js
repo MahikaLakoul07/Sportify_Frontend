@@ -11,7 +11,7 @@ BACKEND_ROOT = BACKEND_ROOT.replace(/\/api\/?$/, "");
 
 // 3️⃣ Get JWT token
 function getToken() {
-  return localStorage.getItem("access") || localStorage.getItem("accessToken");
+  return localStorage.getItem("access");
 }
 
 export async function apiFetch(path, options = {}) {

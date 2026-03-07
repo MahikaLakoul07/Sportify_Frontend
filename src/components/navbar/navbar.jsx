@@ -89,7 +89,7 @@ export default function Navbar() {
                           + Create Ground
                         </Link>
                         <Link to="/owner/grounds" className="dd-item">
-                          My Grounds
+                          Manage Grounds
                         </Link>
                         <Link to="/owner/bookings" className="dd-item">
                           Bookings
