@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import logo from "../../assets/logo.png";
 import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
+import { apiFetch } from "../../lib/api";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   // Form state
   const [email, setEmail] = useState("");
@@ -14,46 +17,33 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
+  const goDashboard = (role) => {
+    if (role === "OWNER") navigate("/owner");
+    else navigate("/player");
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
-
     setErr("");
     setLoading(true);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/authapp/login/", {
+      // backend expects { email, password }
+      const data = await apiFetch("/authapp/login/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
+        body: { email, password },
       });
 
-      const data = await response.json();
+      // store tokens + user in AuthContext (updates navbar immediately)
+      const u = login({
+        user: data.user,
+        access: data.access,
+        refresh: data.refresh,
+      });
 
-      if (!response.ok) {
-        throw new Error(data?.detail || "Invalid email or password");
-      }
-
-      // Save tokens in localStorage
-      localStorage.setItem("access", data.access);
-      localStorage.setItem("refresh", data.refresh);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      // Redirect based on user type
-      const userType = (data.user.user_type || "").toUpperCase();
-
-      if (userType === "OWNER") {
-        navigate("/owner");
-      } else {
-        navigate("/player");
-      }
-
+      goDashboard(u.role);
     } catch (error) {
-      setErr(error.message);
+      setErr(error.message || "Invalid email or password");
     } finally {
       setLoading(false);
     }
