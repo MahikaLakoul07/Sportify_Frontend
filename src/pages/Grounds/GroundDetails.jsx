@@ -21,6 +21,13 @@ const FIXED_SLOTS = [
   { start: "18:00", end: "19:00", label: "6:00 PM" },
 ];
 
+const PLAYER_POSITIONS = [
+  { value: "GOALKEEPER", label: "Goalkeeper" },
+  { value: "DEFENDER", label: "Defender" },
+  { value: "MIDFIELDER", label: "Midfielder" },
+  { value: "FORWARD", label: "Forward" },
+];
+
 const slotKey = (start, end) => `${start}-${end}`;
 
 // safer YYYY-MM-DD for local date (avoids toISOString() UTC shifting)
@@ -41,10 +48,24 @@ export default function GroundDetails() {
 
   // UI state
   const [activeCourtId, setActiveCourtId] = useState(null);
+
   // selectedSlot now includes backend times
   // { dayLabel, timeLabel, dateISO, dateYMD, start_time, end_time }
   const [selectedSlot, setSelectedSlot] = useState(null);
+
   const [promo, setPromo] = useState("");
+
+  // NEW: booking mode
+  const [bookingMode, setBookingMode] = useState("PRIVATE");
+
+  // NEW: open game needed positions
+  const [neededPositions, setNeededPositions] = useState([]);
+
+  // NEW: optional note for public booking
+  const [openGameNote, setOpenGameNote] = useState("");
+
+  // NEW: local validation error
+  const [bookingErr, setBookingErr] = useState("");
 
   // date nav
   const [baseDate, setBaseDate] = useState(() => new Date());
@@ -126,7 +147,6 @@ export default function GroundDetails() {
   // -----------------------------
   // Fetch real slot statuses for visible 7 days
   // GET /api/grounds/:id/slots/?date=YYYY-MM-DD
-  // Backend should read date from request.query_params. [web:84]
   // -----------------------------
   useEffect(() => {
     if (!id) return;
@@ -139,7 +159,10 @@ export default function GroundDetails() {
           days.map(async (d) => {
             const date = ymdLocal(d);
             const url = `/api/grounds/${id}/slots/?date=${date}`;
-            const data = await apiFetch(url, { method: "GET", signal: controller.signal });
+            const data = await apiFetch(url, {
+              method: "GET",
+              signal: controller.signal,
+            });
             return { date, data };
           })
         );
@@ -159,7 +182,6 @@ export default function GroundDetails() {
           return next;
         });
       } catch (e) {
-        // Abort is fine (baseDate changed quickly)
         if (e?.name === "AbortError") return;
         console.error(e);
       }
@@ -208,19 +230,81 @@ export default function GroundDetails() {
       start_time: slot.start,
       end_time: slot.end,
     });
+
+    setBookingErr("");
   };
 
-  const price = activeCourt?.price || 0;
+  const toggleNeededPosition = (posValue) => {
+    setNeededPositions((prev) => {
+      if (prev.includes(posValue)) {
+        return prev.filter((x) => x !== posValue);
+      }
+      return [...prev, posValue];
+    });
+    setBookingErr("");
+  };
+
+  const onChangeBookingMode = (mode) => {
+    setBookingMode(mode);
+    setBookingErr("");
+
+    if (mode === "PRIVATE") {
+      setNeededPositions([]);
+      setOpenGameNote("");
+    }
+  };
+
+  const price = Number(activeCourt?.price || 0);
   const payNow = selectedSlot ? Math.round(price * 0.2) : 0;
   const total = selectedSlot ? price : 0;
 
+  const continueToCheckout = () => {
+    setBookingErr("");
+
+    if (!selectedSlot) {
+      setBookingErr("Please select an available slot first.");
+      return;
+    }
+
+    if (bookingMode === "PUBLIC" && neededPositions.length === 0) {
+      setBookingErr("Please select at least one required position for the open game.");
+      return;
+    }
+
+    nav("/checkout", {
+      state: {
+        groundName: ground.name,
+        location: ground.location,
+        courtLabel: activeCourt?.label,
+        courtName: activeCourt?.courtName,
+        dateLabel: selectedSlot.dayLabel,
+        timeLabel: selectedSlot.timeLabel,
+        dateISO: selectedSlot.dateISO,
+        dateYMD: selectedSlot.dateYMD,
+        start_time: selectedSlot.start_time,
+        end_time: selectedSlot.end_time,
+        price,
+        groundId: ground.id,
+        courtId: activeCourt?.id,
+
+        // NEW
+        bookingType: bookingMode, // PRIVATE or PUBLIC
+        neededPositions: bookingMode === "PUBLIC" ? neededPositions : [],
+        openGameNote: bookingMode === "PUBLIC" ? openGameNote.trim() : "",
+      },
+    });
+  };
+
   if (loading) return <div className="gd-page">Loading...</div>;
-  if (err)
+
+  if (err) {
     return (
       <div className="gd-page">
         <div className="gd-error">{err}</div>
       </div>
     );
+  }
+
   if (!ground) return null;
 
   return (
@@ -270,6 +354,78 @@ export default function GroundDetails() {
                   {activeCourt?.label} • NPR {price}/hr
                 </div>
               </div>
+            </div>
+
+            {/* NEW: BOOKING TYPE */}
+            <div className="gd-card">
+              <div className="gd-sectionTitle" style={{ marginBottom: 12 }}>
+                Team Formation
+              </div>
+
+              <div className="bookingModeRow">
+                <button
+                  type="button"
+                  className={
+                    bookingMode === "PRIVATE"
+                      ? "bookingModeBtn active"
+                      : "bookingModeBtn"
+                  }
+                  onClick={() => onChangeBookingMode("PRIVATE")}
+                >
+                  <div className="bookingModeTitle">Private Booking</div>
+                  <div className="bookingModeText">
+                    Reserve the ground for your complete team only.
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  className={
+                    bookingMode === "PUBLIC"
+                      ? "bookingModeBtn active"
+                      : "bookingModeBtn"
+                  }
+                  onClick={() => onChangeBookingMode("PUBLIC")}
+                >
+                  <div className="bookingModeTitle">Open Game</div>
+                  <div className="bookingModeText">
+                    Let other players request to join your team.
+                  </div>
+                </button>
+              </div>
+
+              {bookingMode === "PUBLIC" && (
+                <div className="openGameBox">
+                  <div className="openGameLabel">Needed Positions</div>
+                  <div className="positionGrid">
+                    {PLAYER_POSITIONS.map((pos) => {
+                      const selected = neededPositions.includes(pos.value);
+                      return (
+                        <button
+                          key={pos.value}
+                          type="button"
+                          className={selected ? "positionBtn active" : "positionBtn"}
+                          onClick={() => toggleNeededPosition(pos.value)}
+                        >
+                          {pos.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="openGameHint">
+                    Choose the positions you need for this open game.
+                  </div>
+
+                  <textarea
+                    className="openGameTextarea"
+                    placeholder="Optional note for players (e.g. Need one solid defender and one goalkeeper)"
+                    value={openGameNote}
+                    onChange={(e) => setOpenGameNote(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+              )}
             </div>
 
             {/* SCHEDULE */}
@@ -370,8 +526,7 @@ export default function GroundDetails() {
                           ? "Selected"
                           : "Available";
 
-                      const disabled =
-                        status !== "AVAILABLE" && !isSelected; // cannot click booked/closed/past/loading
+                      const disabled = status !== "AVAILABLE" && !isSelected;
 
                       return (
                         <button
@@ -425,14 +580,27 @@ export default function GroundDetails() {
 
               <div className="amountBox">
                 <div>
-                  <div className="amountLabel">Total Amount</div>
-                  <div className="muted">Pay at Venue</div>
+                  <div className="amountLabel">Booking Type</div>
+                  <div className="muted">
+                    {bookingMode === "PRIVATE" ? "Private Booking" : "Open Game"}
+                  </div>
                 </div>
                 <div className="amountRight">
                   <div className="amountMain">NPR {total.toFixed(2)}</div>
-                  <div className="muted">NPR {total.toFixed(2)} + Water</div>
+                  <div className="muted">Pay at Venue / Online</div>
                 </div>
               </div>
+
+              {bookingMode === "PUBLIC" && (
+                <div className="openGameSummary">
+                  <div className="summaryLabel">Needed Positions</div>
+                  <div className="summaryValue">
+                    {neededPositions.length > 0
+                      ? neededPositions.join(", ")
+                      : "No position selected"}
+                  </div>
+                </div>
+              )}
 
               <div className="payRow">
                 <div>
@@ -441,36 +609,20 @@ export default function GroundDetails() {
                 <div className="payNow">NPR {payNow.toFixed(2)}</div>
               </div>
 
+              {bookingErr ? <div className="gd-inlineError">{bookingErr}</div> : null}
+
               <button
                 className="checkoutBtn"
                 disabled={!selectedSlot}
-                onClick={() => {
-                  if (!selectedSlot) return;
-
-                  nav("/checkout", {
-                    state: {
-                      groundName: ground.name,
-                      location: ground.location,
-                      courtLabel: activeCourt?.label,
-                      courtName: activeCourt?.courtName,
-                      dateLabel: selectedSlot.dayLabel,
-                      timeLabel: selectedSlot.timeLabel,
-                      dateISO: selectedSlot.dateISO,
-                      dateYMD: selectedSlot.dateYMD,
-                      start_time: selectedSlot.start_time,
-                      end_time: selectedSlot.end_time,
-                      price,
-                      groundId: ground.id,
-                      courtId: activeCourt?.id,
-                    },
-                  });
-                }}
+                onClick={continueToCheckout}
               >
                 Continue to Checkout
               </button>
 
               <div className="finePrint">
-                Only 20% payment required to confirm booking
+                {bookingMode === "PRIVATE"
+                  ? "Private booking is reserved only for your team."
+                  : "Open game allows other players to request to join your team."}
               </div>
             </div>
           </div>
