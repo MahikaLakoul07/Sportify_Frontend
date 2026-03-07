@@ -14,6 +14,7 @@ export default function Register() {
     email: "",
     phone: "",
     password: "",
+    confirm_password: "",
     user_type: "player",
     gender: "male",
   });
@@ -43,6 +44,12 @@ export default function Register() {
   const onSubmit = async (e) => {
     e.preventDefault();
     setErr("");
+
+    if (form.password !== form.confirm_password) {
+      setErr("Passwords do not match.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -51,7 +58,6 @@ export default function Register() {
         body: form,
       });
 
-      // Ensure backend returned required fields
       if (!data?.user || !data?.access) {
         throw new Error("Invalid server response.");
       }
@@ -133,6 +139,16 @@ export default function Register() {
               type="password"
               placeholder="Password"
               value={form.password}
+              onChange={onChange}
+              required
+            />
+
+            <input
+              className="input"
+              name="confirm_password"
+              type="password"
+              placeholder="Confirm Password"
+              value={form.confirm_password}
               onChange={onChange}
               required
             />
