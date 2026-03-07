@@ -1,13 +1,20 @@
-import React, { useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import "./MyBookingDetails.css";
 
 export default function MyBookingDetails() {
   const nav = useNavigate();
   const { bookingId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [err, setErr] = useState("");
   const [success, setSuccess] = useState("");
+
+  const [paymentPopup, setPaymentPopup] = useState({
+    open: false,
+    type: "",
+    tx: "",
+  });
 
   const booking = useMemo(function () {
     const data = [
@@ -63,6 +70,33 @@ export default function MyBookingDetails() {
     });
   }, [bookingId]);
 
+  useEffect(() => {
+    const payment = searchParams.get("payment");
+    const tx = searchParams.get("tx") || "";
+
+    if (payment === "success" || payment === "failure") {
+      setPaymentPopup({
+        open: true,
+        type: payment,
+        tx: tx,
+      });
+    }
+  }, [searchParams]);
+
+  const closePaymentPopup = function () {
+    setPaymentPopup({
+      open: false,
+      type: "",
+      tx: "",
+    });
+
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete("payment");
+    newParams.delete("tx");
+
+    setSearchParams(newParams, { replace: true });
+  };
+
   const statusClass = useMemo(function () {
     if (!booking) return "status-pill";
     if (booking.status === "PENDING") return "status-pill pending";
@@ -95,12 +129,13 @@ export default function MyBookingDetails() {
         <div className="details-header">
           <div>
             <div className="badge">Booking Details</div>
+
             <h1 className="h1" style={{ marginTop: 10 }}>
-                {booking ? booking.ground_name : "Booking Details"}
+              {booking ? booking.ground_name : "Booking Details"}
             </h1>
 
             <p className="p">
-                {booking
+              {booking
                 ? booking.date + " • " + booking.slot
                 : "Review details and manage your booking."}
             </p>
@@ -116,6 +151,7 @@ export default function MyBookingDetails() {
         {!booking ? (
           <div className="card details-card">
             <div className="details-title">Booking not found</div>
+
             <div className="details-sub">
               This booking ID does not exist in demo data.
             </div>
@@ -133,6 +169,7 @@ export default function MyBookingDetails() {
                 <div className="details-groundName">
                   {booking.ground_name || "Ground #" + booking.ground_id}
                 </div>
+
                 <div className="details-muted">
                   Ground ID: {booking.ground_id}
                 </div>
@@ -165,6 +202,7 @@ export default function MyBookingDetails() {
 
             <div className="details-section">
               <div className="details-label">Notes</div>
+
               <div className="details-text">
                 {booking.notes ? booking.notes : "No notes added."}
               </div>
@@ -173,6 +211,7 @@ export default function MyBookingDetails() {
             {booking.booking_type === "PUBLIC" ? (
               <div className="details-section">
                 <div className="details-label">Public Match</div>
+
                 <div className="details-text">
                   Players can request to join. (Requests UI will be added next.)
                 </div>
@@ -206,6 +245,58 @@ export default function MyBookingDetails() {
           </div>
         )}
       </div>
+
+      {/* PAYMENT POPUP */}
+      {paymentPopup.open ? (
+        <div className="payment-popup-backdrop">
+          <div className="payment-popup-card">
+            <div
+              className={
+                paymentPopup.type === "success"
+                  ? "payment-popup-icon success"
+                  : "payment-popup-icon failure"
+              }
+            >
+              {paymentPopup.type === "success" ? "✓" : "✕"}
+            </div>
+
+            <h2 className="payment-popup-title">
+              {paymentPopup.type === "success"
+                ? "Payment Successful"
+                : "Payment Failed"}
+            </h2>
+
+            <p className="payment-popup-text">
+              {paymentPopup.type === "success"
+                ? "Your payment has been completed successfully."
+                : "Your payment was cancelled or could not be completed."}
+            </p>
+
+            {paymentPopup.type === "success" && paymentPopup.tx ? (
+              <p className="payment-popup-tx">
+                Transaction ID: <span>{paymentPopup.tx}</span>
+              </p>
+            ) : null}
+
+            <div className="payment-popup-actions">
+              <button className="btn outline" onClick={closePaymentPopup}>
+                Close
+              </button>
+
+              <button className="btn primary" onClick={() => nav("/")}>
+                Go Home
+              </button>
+
+              <button
+                className="btn primary"
+                onClick={() => nav("/mybookings")}
+              >
+                My Bookings
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
