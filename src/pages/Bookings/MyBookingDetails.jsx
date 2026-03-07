@@ -279,7 +279,7 @@ export default function MyBookingDetails() {
             ) : null}
 
             <div className="payment-popup-actions">
-              <button className="btn outline" onClick={closePaymentPopup}>
+              <button className="btn primary" onClick={closePaymentPopup}>
                 Close
               </button>
 
