@@ -2,53 +2,43 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import "./Register.css";
-
-// API call
-const register = async (payload) => {
-  const response = await fetch("http://127.0.0.1:8000/authapp/register/", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    const firstKey = Object.keys(data)[0];
-    const message =
-      firstKey && Array.isArray(data[firstKey])
-        ? data[firstKey][0]
-        : data?.detail || "Registration failed.";
-    throw new Error(message);
-  }
-
-  return data;
-};
+import { apiFetch } from "../../lib/api";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Register() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  // Form state
   const [form, setForm] = useState({
     username: "",
     email: "",
     phone: "",
     password: "",
-    user_type: "player", // must match backend choices
+    user_type: "player",
     gender: "male",
   });
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  const onChange = (e) =>
-    setForm((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value.toLowerCase(),
-    }));
+  const [showKeep, setShowKeep] = useState(false);
+  const [pendingAuth, setPendingAuth] = useState(null);
+
+  const goDashboard = (role) => {
+    if (role === "OWNER") navigate("/owner");
+    else navigate("/player");
+  };
+
+  const onChange = (e) => {
+    const { name, value } = e.target;
+
+    const lowerFields = ["email", "user_type", "gender"];
+    const finalValue = lowerFields.includes(name)
+      ? value.toLowerCase()
+      : value;
+
+    setForm((prev) => ({ ...prev, [name]: finalValue }));
+  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -56,31 +46,49 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const data = await register(form);
+      const data = await apiFetch("/authapp/register/", {
+        method: "POST",
+        body: form,
+      });
 
-      // ✅ Store JWT in localStorage
-      localStorage.setItem("access", data.access);
-      localStorage.setItem("refresh", data.refresh);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      // Redirect based on role
-      if (form.user_type === "owner") {
-        navigate("/owner");
-      } else {
-        navigate("/player");
+      // Ensure backend returned required fields
+      if (!data?.user || !data?.access) {
+        throw new Error("Invalid server response.");
       }
+
+      setPendingAuth(data);
+      setShowKeep(true);
     } catch (error) {
-      setErr(error.message);
+      setErr(error.message || "Registration failed.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const keepYes = () => {
+    if (!pendingAuth) return;
+
+    const u = login({
+      user: pendingAuth.user,
+      access: pendingAuth.access,
+      refresh: pendingAuth.refresh,
+    });
+
+    setShowKeep(false);
+    setPendingAuth(null);
+    goDashboard(u.role);
+  };
+
+  const keepNo = () => {
+    setShowKeep(false);
+    setPendingAuth(null);
+    navigate("/login");
   };
 
   return (
     <div className="page-bg">
       <div className="container register-wrap">
         <div className="card register-card">
-
           <img src={logo} alt="Sportify Logo" className="register-logo" />
 
           <h2 className="register-title">Create your account</h2>
@@ -91,7 +99,6 @@ export default function Register() {
           {err && <div className="register-error">{err}</div>}
 
           <form onSubmit={onSubmit} className="register-form">
-
             <input
               className="input"
               name="username"
@@ -130,7 +137,6 @@ export default function Register() {
               required
             />
 
-            {/* User Type */}
             <div className="role-row">
               <label className="role-label">Role</label>
               <select
@@ -144,7 +150,6 @@ export default function Register() {
               </select>
             </div>
 
-            {/* Gender */}
             <div className="role-row">
               <label className="role-label">Gender</label>
               <select
@@ -161,16 +166,32 @@ export default function Register() {
             <button className="btn primary" disabled={loading}>
               {loading ? "Creating..." : "Create Account"}
             </button>
-
           </form>
 
           <div className="register-links">
             <span>Already have an account?</span>
             <Link to="/login">Login</Link>
           </div>
-
         </div>
       </div>
+
+      {showKeep && (
+        <div className="keepModalBack">
+          <div className="keepModal">
+            <h3>Keep logged in?</h3>
+            <p>Do you want to stay logged in on this device?</p>
+
+            <div className="keepActions">
+              <button className="btn primary" onClick={keepYes}>
+                Yes
+              </button>
+              <button className="btn outline" onClick={keepNo}>
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
