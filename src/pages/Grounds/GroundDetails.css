@@ -158,6 +158,42 @@
 }
 
 /* ---------------- */
+/* REQUIRED PLAYERS */
+/* ---------------- */
+
+.requiredPlayersWrap {
+  margin-top: 14px;
+}
+
+.requiredPlayersLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #d9e2ff;
+  margin-bottom: 8px;
+}
+
+.requiredPlayersSelect {
+  width: 100%;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+}
+
+.requiredPlayersSelect:focus {
+  border-color: #4f6bff;
+}
+
+.requiredPlayersSelect option {
+  color: #111827;
+  background: #ffffff;
+}
+
+/* ---------------- */
 /* TEXTAREA */
 /* ---------------- */
 

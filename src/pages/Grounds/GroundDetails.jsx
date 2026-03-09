@@ -28,6 +28,8 @@ const PLAYER_POSITIONS = [
   { value: "FORWARD", label: "Forward" },
 ];
 
+const REQUIRED_PLAYER_OPTIONS = Array.from({ length: 20 }, (_, i) => i + 1);
+
 const slotKey = (start, end) => `${start}-${end}`;
 
 // safer YYYY-MM-DD for local date (avoids toISOString() UTC shifting)
@@ -55,16 +57,19 @@ export default function GroundDetails() {
 
   const [promo, setPromo] = useState("");
 
-  // NEW: booking mode
+  // booking mode
   const [bookingMode, setBookingMode] = useState("PRIVATE");
 
-  // NEW: open game needed positions
+  // open game needed positions
   const [neededPositions, setNeededPositions] = useState([]);
 
-  // NEW: optional note for public booking
+  // NEW: required players
+  const [requiredPlayers, setRequiredPlayers] = useState(1);
+
+  // optional note for public booking
   const [openGameNote, setOpenGameNote] = useState("");
 
-  // NEW: local validation error
+  // local validation error
   const [bookingErr, setBookingErr] = useState("");
 
   // date nav
@@ -250,6 +255,7 @@ export default function GroundDetails() {
 
     if (mode === "PRIVATE") {
       setNeededPositions([]);
+      setRequiredPlayers(1);
       setOpenGameNote("");
     }
   };
@@ -287,9 +293,9 @@ export default function GroundDetails() {
         groundId: ground.id,
         courtId: activeCourt?.id,
 
-        // NEW
-        bookingType: bookingMode, // PRIVATE or PUBLIC
+        bookingType: bookingMode,
         neededPositions: bookingMode === "PUBLIC" ? neededPositions : [],
+        requiredPlayers: bookingMode === "PUBLIC" ? requiredPlayers : 0,
         openGameNote: bookingMode === "PUBLIC" ? openGameNote.trim() : "",
       },
     });
@@ -356,7 +362,7 @@ export default function GroundDetails() {
               </div>
             </div>
 
-            {/* NEW: BOOKING TYPE */}
+            {/* BOOKING TYPE */}
             <div className="gd-card">
               <div className="gd-sectionTitle" style={{ marginBottom: 12 }}>
                 Team Formation
@@ -397,6 +403,7 @@ export default function GroundDetails() {
               {bookingMode === "PUBLIC" && (
                 <div className="openGameBox">
                   <div className="openGameLabel">Needed Positions</div>
+
                   <div className="positionGrid">
                     {PLAYER_POSITIONS.map((pos) => {
                       const selected = neededPositions.includes(pos.value);
@@ -415,6 +422,21 @@ export default function GroundDetails() {
 
                   <div className="openGameHint">
                     Choose the positions you need for this open game.
+                  </div>
+
+                  <div className="requiredPlayersWrap">
+                    <div className="requiredPlayersLabel">Required Players</div>
+                    <select
+                      className="requiredPlayersSelect"
+                      value={requiredPlayers}
+                      onChange={(e) => setRequiredPlayers(Number(e.target.value))}
+                    >
+                      {REQUIRED_PLAYER_OPTIONS.map((num) => (
+                        <option key={num} value={num}>
+                          {num} Player{num > 1 ? "s" : ""}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <textarea
@@ -455,9 +477,6 @@ export default function GroundDetails() {
                     </span>
                     <span>
                       <i className="dot selected" /> Selected
-                    </span>
-                    <span>
-                      <i className="dot past" /> Past
                     </span>
                   </div>
                 </div>
@@ -592,14 +611,23 @@ export default function GroundDetails() {
               </div>
 
               {bookingMode === "PUBLIC" && (
-                <div className="openGameSummary">
-                  <div className="summaryLabel">Needed Positions</div>
-                  <div className="summaryValue">
-                    {neededPositions.length > 0
-                      ? neededPositions.join(", ")
-                      : "No position selected"}
+                <>
+                  <div className="openGameSummary">
+                    <div className="summaryLabel">Needed Positions</div>
+                    <div className="summaryValue">
+                      {neededPositions.length > 0
+                        ? neededPositions.join(", ")
+                        : "No position selected"}
+                    </div>
                   </div>
-                </div>
+
+                  <div className="openGameSummary">
+                    <div className="summaryLabel">Required Players</div>
+                    <div className="summaryValue">
+                      {requiredPlayers} Player{requiredPlayers > 1 ? "s" : ""}
+                    </div>
+                  </div>
+                </>
               )}
 
               <div className="payRow">
