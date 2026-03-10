@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { CalendarCheck, MapPin, Users } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -9,14 +9,37 @@ import dhukuFutsalHub from "../../assets/dhuku_futsal_hub.png";
 import khelkunjArena from "../../assets/khelkunj_arena.png";
 import fieldFutsal from "../../assets/field_futsal.png";
 
-/* REUSABLE COMPONENTS */
 import GroundCard from "../../components/GroundCard/GroundCard.jsx";
 import OpenGameCard from "../../components/OpenGameCard/OpenGameCard.jsx";
+import { apiFetch } from "../../lib/api";
 
 export default function Home() {
+  const [openGames, setOpenGames] = useState([]);
+  const [loadingOpenGames, setLoadingOpenGames] = useState(true);
+
+  useEffect(() => {
+    const loadOpenGames = async () => {
+      try {
+        setLoadingOpenGames(true);
+        const data = await apiFetch("/api/bookings/open-games/?today=1", {
+          method: "GET",
+        });
+        setOpenGames(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error("Failed to load open games", e);
+        setOpenGames([]);
+      } finally {
+        setLoadingOpenGames(false);
+      }
+    };
+
+    loadOpenGames();
+  }, []);
+
+  const fallbackImages = [dhukuFutsalHub, khelkunjArena, fieldFutsal];
+
   return (
     <div className="page">
-      {/* ================= HERO SECTION ================= */}
       <section className="hero">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -56,7 +79,6 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* ================= CORE FEATURES ================= */}
       <section id="features" className="features">
         <h3>Core System Features</h3>
 
@@ -84,7 +106,6 @@ export default function Home() {
         </div>
       </section>
 
-     {/* ================= FEATURED GROUNDS ================= */}
       <section className="features">
         <h3>Featured Futsal Grounds</h3>
 
@@ -124,53 +145,39 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ================= OPEN GAMES (TODAY) ================= */}
       <section className="features">
         <div className="section-head">
-        <h3>Open Games (Today)</h3>
-      </div>
+          <h3>Open Games (Today)</h3>
+        </div>
 
-      <div className="feature-grid">
-        <OpenGameCard
-          image={dhukuFutsalHub}
-          name="Dhuku Futsal Hub"
-          date="Feb 24, 2026"
-          time="6:00 PM"
-          requiredPlayers="3 players"
-          phone="9841XXXXXX"
-          chatLink="/chat/temp-1"
-        />
+        <div className="feature-grid">
+          {loadingOpenGames ? (
+            <div style={{ color: "#cbd5f5" }}>Loading open games...</div>
+          ) : openGames.length > 0 ? (
+            openGames.slice(0, 3).map((game, index) => (
+              <OpenGameCard
+                key={game.id}
+                image={game.ground_image_url || fallbackImages[index % fallbackImages.length]}
+                name={game.ground_name}
+                date={game.date}
+                time={`${game.start_time} - ${game.end_time}`}
+                requiredPlayers={`${game.spots_left} player${game.spots_left > 1 ? "s" : ""} needed`}
+                phone={game.ground_phone || "Contact not available"}
+                chatLink={`/open-games/${game.id}`}
+              />
+            ))
+          ) : (
+            <div style={{ color: "#cbd5f5" }}>No open games available for today.</div>
+          )}
+        </div>
 
-        <OpenGameCard
-          image={khelkunjArena}
-          name="Khelkunj Arena"
-          date="Feb 24, 2026"
-          time="7:00 PM"
-          requiredPlayers="2 players"
-          phone="9803XXXXXX"
-          chatLink="/chat/temp-2"
-        />
+        <div className="section-foot">
+          <Link to="/open-games" className="btn outline">
+            View All
+          </Link>
+        </div>
+      </section>
 
-        <OpenGameCard
-          image={fieldFutsal}
-          name="Field Futsal"
-          date="Feb 24, 2026"
-          time="8:00 PM"
-          requiredPlayers="1 goalkeeper"
-          phone="9851XXXXXX"
-          chatLink="/chat/temp-3"
-        />
-      </div>
-
-      {/* View All at bottom */}
-      <div className="section-foot">
-        <Link to="/open-games" className="btn outline">
-          View All
-        </Link>
-      </div>
-    </section>
-
-      {/* ================= HOW IT WORKS ================= */}
       <section id="how" className="how">
         <h3>How Sportify Works</h3>
 
@@ -210,7 +217,6 @@ export default function Home() {
   );
 }
 
-/* ================= FEATURE CARD ================= */
 function FeatureCard({ icon, title, desc, to }) {
   const content = (
     <div className="feature-card">
@@ -229,7 +235,6 @@ function FeatureCard({ icon, title, desc, to }) {
   );
 }
 
-/* ================= STEP CARD ================= */
 function StepCard({ step, title, desc }) {
   return (
     <div className="step-card">
