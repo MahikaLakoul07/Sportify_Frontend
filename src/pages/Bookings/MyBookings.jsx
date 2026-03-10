@@ -1,9 +1,41 @@
 import React, { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import "./MyBookings.css";
 
 export default function MyBookings() {
   const nav = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const paymentStatus = searchParams.get("payment");
+  const bookingId = searchParams.get("booking_id");
+  const tx = searchParams.get("tx");
+
+  const paymentMessage = useMemo(() => {
+    if (paymentStatus === "success") {
+      return {
+        type: "success",
+        text: bookingId
+          ? `Payment successful. Your booking #${bookingId} has been confirmed.`
+          : "Payment successful. Your booking has been confirmed.",
+      };
+    }
+
+    if (paymentStatus === "slot_taken") {
+      return {
+        type: "warning",
+        text: "Payment completed but the slot was already taken. Please contact support or choose another slot.",
+      };
+    }
+
+    if (paymentStatus === "failure") {
+      return {
+        type: "error",
+        text: "Payment failed or was cancelled. No booking was created.",
+      };
+    }
+
+    return null;
+  }, [paymentStatus, bookingId]);
 
   const demoBookings = useMemo(function () {
     return [
@@ -132,6 +164,13 @@ export default function MyBookings() {
   return (
     <div className="page-bg">
       <div className="container">
+        {paymentMessage && (
+          <div className={`payment-alert ${paymentMessage.type}`}>
+            <div>{paymentMessage.text}</div>
+            {tx && <div className="payment-tx">Transaction: {tx}</div>}
+          </div>
+        )}
+
         <div className="mybookings-header">
           <div>
             <div className="badge">Player</div>
@@ -262,7 +301,6 @@ export default function MyBookings() {
                       View Ground
                     </Link>
 
-                    {/* ✅ FIXED DETAILS LINK */}
                     <Link
                       to={"/mybookings/" + b.booking_id}
                       className="btn outline"
