@@ -1,4 +1,3 @@
-// src/pages/GroundDetails/GroundDetails.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiFetch } from "../../lib/api";
@@ -59,8 +58,8 @@ export default function GroundDetails() {
 
   const [activeCourtId, setActiveCourtId] = useState(null);
 
-  // { dayLabel, timeLabel, dateISO, dateYMD, start_time, end_time }
-  const [selectedSlot, setSelectedSlot] = useState(null);
+  // changed: support multiple selected slots
+  const [selectedSlots, setSelectedSlots] = useState([]);
 
   const [promo, setPromo] = useState("");
 
@@ -104,7 +103,7 @@ export default function GroundDetails() {
 
         setGround(mapped);
         setActiveCourtId(mapped.courts?.[0]?.id || null);
-        setSelectedSlot(null);
+        setSelectedSlots([]);
       } catch (ex) {
         setErr(ex?.message || "Failed to load ground details.");
         setGround(null);
@@ -210,6 +209,7 @@ export default function GroundDetails() {
     return "CLOSED";
   };
 
+  // changed: multi-slot picker, max 5, same day, consecutive only
   const onPickSlot = (dayIndex, timeIndex) => {
     const status = getCellStatus(dayIndex, timeIndex);
     if (status !== "AVAILABLE") return;
@@ -217,7 +217,7 @@ export default function GroundDetails() {
     const day = days[dayIndex];
     const slot = FIXED_SLOTS[timeIndex];
 
-    setSelectedSlot({
+    const picked = {
       dayLabel: `${formatDay(day)}, ${day.toLocaleDateString(undefined, {
         month: "short",
         day: "numeric",
@@ -227,9 +227,51 @@ export default function GroundDetails() {
       dateYMD: ymdLocal(day),
       start_time: slot.start,
       end_time: slot.end,
-    });
+      slotIndex: timeIndex,
+    };
 
-    setBookingErr("");
+    setSelectedSlots((prev) => {
+      const exists = prev.some(
+        (x) => x.dateYMD === picked.dateYMD && x.slotIndex === picked.slotIndex
+      );
+
+      // unselect if already selected
+      if (exists) {
+        const next = prev
+          .filter(
+            (x) => !(x.dateYMD === picked.dateYMD && x.slotIndex === picked.slotIndex)
+          )
+          .sort((a, b) => a.slotIndex - b.slotIndex);
+
+        setBookingErr("");
+        return next;
+      }
+
+      // max 5 slots
+      if (prev.length >= 5) {
+        setBookingErr("You can select maximum 5 slots only.");
+        return prev;
+      }
+
+      // same date only
+      if (prev.length > 0 && prev[0].dateYMD !== picked.dateYMD) {
+        setBookingErr("Please select slots from the same day only.");
+        return prev;
+      }
+
+      const next = [...prev, picked].sort((a, b) => a.slotIndex - b.slotIndex);
+
+      // consecutive only
+      for (let i = 1; i < next.length; i++) {
+        if (next[i].slotIndex !== next[i - 1].slotIndex + 1) {
+          setBookingErr("Please select consecutive slots only.");
+          return prev;
+        }
+      }
+
+      setBookingErr("");
+      return next;
+    });
   };
 
   const toggleNeededPosition = (posValue) => {
@@ -253,15 +295,36 @@ export default function GroundDetails() {
     }
   };
 
-  const price = Number(activeCourt?.price || 0);
-  const payNow = selectedSlot ? Math.round(price * 0.2) : 0;
-  const total = selectedSlot ? price : 0;
+  // changed: price based on selected slot count
+  const pricePerHour = Number(activeCourt?.price || 0);
+  const totalHours = selectedSlots.length;
+  const total = totalHours > 0 ? pricePerHour * totalHours : 0;
+  const payNow = totalHours > 0 ? Math.round(total * 0.2) : 0;
+
+  // changed: derive booking range from selected slots
+  const selectedRange = useMemo(() => {
+    if (selectedSlots.length === 0) return null;
+
+    const sorted = [...selectedSlots].sort((a, b) => a.slotIndex - b.slotIndex);
+
+    return {
+      dayLabel: sorted[0].dayLabel,
+      dateISO: sorted[0].dateISO,
+      dateYMD: sorted[0].dateYMD,
+      start_time: sorted[0].start_time,
+      end_time: sorted[sorted.length - 1].end_time,
+      timeLabel:
+        sorted.length === 1
+          ? sorted[0].timeLabel
+          : `${sorted[0].start_time} - ${sorted[sorted.length - 1].end_time}`,
+    };
+  }, [selectedSlots]);
 
   const continueToCheckout = () => {
     setBookingErr("");
 
-    if (!selectedSlot) {
-      setBookingErr("Please select an available slot first.");
+    if (!selectedRange) {
+      setBookingErr("Please select at least one available slot first.");
       return;
     }
 
@@ -275,6 +338,9 @@ export default function GroundDetails() {
       neededPositions,
       requiredPlayers,
       openGameNote,
+      selectedSlotCount: totalHours,
+      start_time: selectedRange.start_time,
+      end_time: selectedRange.end_time,
     });
 
     nav("/checkout", {
@@ -283,13 +349,14 @@ export default function GroundDetails() {
         location: ground.location,
         courtLabel: activeCourt?.label,
         courtName: activeCourt?.courtName,
-        dateLabel: selectedSlot.dayLabel,
-        timeLabel: selectedSlot.timeLabel,
-        dateISO: selectedSlot.dateISO,
-        dateYMD: selectedSlot.dateYMD,
-        start_time: selectedSlot.start_time,
-        end_time: selectedSlot.end_time,
-        price,
+        dateLabel: selectedRange.dayLabel,
+        timeLabel: selectedRange.timeLabel,
+        dateISO: selectedRange.dateISO,
+        dateYMD: selectedRange.dateYMD,
+        start_time: selectedRange.start_time,
+        end_time: selectedRange.end_time,
+        price: total,
+        selectedSlotCount: totalHours,
         groundId: ground.id,
         courtId: activeCourt?.id,
 
@@ -354,7 +421,7 @@ export default function GroundDetails() {
               <div className="gd-flexBetween">
                 <div className="gd-sectionTitle">Pricing</div>
                 <div className="muted">
-                  {activeCourt?.label} • NPR {price}/hr
+                  {activeCourt?.label} • NPR {pricePerHour}/hr
                 </div>
               </div>
             </div>
@@ -454,7 +521,7 @@ export default function GroundDetails() {
                     const d = new Date(baseDate);
                     d.setDate(d.getDate() - 7);
                     setBaseDate(d);
-                    setSelectedSlot(null);
+                    setSelectedSlots([]);
                   }}
                 >
                   ‹
@@ -482,7 +549,7 @@ export default function GroundDetails() {
                     const d = new Date(baseDate);
                     d.setDate(d.getDate() + 7);
                     setBaseDate(d);
-                    setSelectedSlot(null);
+                    setSelectedSlots([]);
                   }}
                 >
                   ›
@@ -507,10 +574,11 @@ export default function GroundDetails() {
                     {days.map((d, dayIndex) => {
                       const status = getCellStatus(dayIndex, timeIndex);
 
-                      const isSelected =
-                        selectedSlot &&
-                        selectedSlot.timeLabel === t &&
-                        selectedSlot.dateYMD === ymdLocal(d);
+                      const isSelected = selectedSlots.some(
+                        (x) =>
+                          x.dateYMD === ymdLocal(d) &&
+                          x.slotIndex === timeIndex
+                      );
 
                       const cls =
                         status === "PAST"
@@ -571,19 +639,19 @@ export default function GroundDetails() {
                 <div className="bar" />
                 <div className="pickText">
                   <div className="pickTop">
-                    <strong>{selectedSlot ? selectedSlot.timeLabel : "—"}</strong>
+                    <strong>{selectedRange ? selectedRange.timeLabel : "—"}</strong>
                     <span className="pillSmall">{activeCourt?.label}</span>
                     <span className="pillSmall">{activeCourt?.courtName}</span>
                   </div>
                   <div className="muted">
-                    {selectedSlot
-                      ? selectedSlot.dayLabel
+                    {selectedRange
+                      ? selectedRange.dayLabel
                       : "Select a slot from the table"}
                   </div>
                 </div>
 
-                {selectedSlot && (
-                  <button className="xBtn" onClick={() => setSelectedSlot(null)}>
+                {selectedSlots.length > 0 && (
+                  <button className="xBtn" onClick={() => setSelectedSlots([])}>
                     ×
                   </button>
                 )}
@@ -598,7 +666,9 @@ export default function GroundDetails() {
                 </div>
                 <div className="amountRight">
                   <div className="amountMain">NPR {total.toFixed(2)}</div>
-                  <div className="muted">Pay at Venue / Online</div>
+                  <div className="muted">
+                    {totalHours > 0 ? `${totalHours} hour(s)` : "Pay at Venue / Online"}
+                  </div>
                 </div>
               </div>
 
@@ -633,7 +703,7 @@ export default function GroundDetails() {
 
               <button
                 className="checkoutBtn"
-                disabled={!selectedSlot}
+                disabled={!selectedRange}
                 onClick={continueToCheckout}
               >
                 Continue to Checkout
