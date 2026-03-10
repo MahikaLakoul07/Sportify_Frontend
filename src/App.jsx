@@ -27,6 +27,10 @@ import PaymentFailure from "./pages/PaymentFailure.jsx";
 
 import OwnerRoute from "./components/OwnerRoute";
 import OwnerDashboard from "./pages/Dashboard/OwnerDashboard.jsx";
+import OwnerMyGrounds from "./pages/Owner/OwnerMyGrounds.jsx";
+import OwnerGroundBookings from "./pages/Owner/OwnerBookings.jsx";
+import OwnerReports from "./pages/Owner/OwnerReports.jsx"; 
+import OwnerEditGround from "./pages/Owner/OwnerEditGrounds.jsx"; 
 
 import PlayerDashboard from "./pages/Dashboard/PlayerDashboard.jsx";
 
@@ -78,6 +82,46 @@ const App = () => {
           }
         />
 
+        {/* OWNER'S GROUNDS */}
+        <Route
+          path="/owner/grounds"
+          element={
+            <OwnerRoute>
+              <OwnerMyGrounds />
+            </OwnerRoute>
+          }
+        />
+
+        {/* OWNER'S GROUND BOOKINGS */}
+        <Route
+          path="/owner/grounds/:id/bookings"
+          element={
+            <OwnerRoute>
+              <OwnerGroundBookings />
+            </OwnerRoute>
+          }
+        />
+
+        {/* OWNER'S GROUND EDITING */}
+        <Route
+          path="/owner/grounds/:id/edit"
+          element={
+            <OwnerRoute>
+              <OwnerEditGround />
+            </OwnerRoute>
+          }
+        />
+
+        {/* OWNER'S REPORTS */}
+        <Route
+          path="/owner/reports" 
+          element={
+            <OwnerRoute>
+              <OwnerReports />
+            </OwnerRoute>
+          }
+        />
+        
         {/* PLAYER BOOKINGS */}
         <Route path="/mybookings" element={<MyBookings />} />
         <Route path="/mybookings/:bookingId" element={<MyBookingDetails />} />
