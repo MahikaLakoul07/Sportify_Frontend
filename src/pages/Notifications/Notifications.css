@@ -1,0 +1,13 @@
+.notifications-page {
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.notifications-page h1 {
+  color: white;
+  margin-bottom: 20px;
+}
+
+.notifications-page p {
+  color: #cbd5f5;
+}
