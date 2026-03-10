@@ -20,6 +20,15 @@ function postToEsewa(actionUrl, fields) {
   form.submit();
 }
 
+function prettifyPosition(value) {
+  if (!value) return "";
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((x) => x.charAt(0).toUpperCase() + x.slice(1))
+    .join(" ");
+}
+
 export default function Checkout() {
   const { state } = useLocation();
   const nav = useNavigate();
@@ -27,9 +36,6 @@ export default function Checkout() {
   const [paying, setPaying] = useState(false);
   const [err, setErr] = useState("");
 
-  // NEW: two options
-  // PAY_FULL_ONLINE => pay 100% now
-  // PAY_DEPOSIT     => pay 20% now, rest at venue
   const [paymentMode, setPaymentMode] = useState("PAY_DEPOSIT");
 
   const price = Number(state?.price || 0);
@@ -42,6 +48,12 @@ export default function Checkout() {
   const payAtVenue = useMemo(() => {
     return paymentMode === "PAY_FULL_ONLINE" ? 0 : price - deposit;
   }, [paymentMode, price, deposit]);
+
+  const prettyPositions = useMemo(() => {
+    return (state?.neededPositions || []).map(prettifyPosition);
+  }, [state]);
+
+  const isOpenBooking = state?.bookingType === "OPEN";
 
   const onPayEsewa = async () => {
     setPaying(true);
@@ -56,11 +68,13 @@ export default function Checkout() {
           start_time: state.start_time,
           end_time: state.end_time,
 
-          // amount depends on payment mode
-          total_amount: payNow,
+          booking_type: state.bookingType,
+          required_players: state.requiredPlayers || 1,
+          open_game_note: state.openGameNote || "",
+          needed_positions: state.neededPositions || [],
 
-          // send mode to backend too
-          payment_mode: paymentMode, // "PAY_FULL_ONLINE" or "PAY_DEPOSIT"
+          total_amount: payNow,
+          payment_mode: paymentMode,
         },
       });
 
@@ -71,17 +85,17 @@ export default function Checkout() {
     }
   };
 
-  if (!state)
+  if (!state) {
     return (
       <div className="co-page">
         <div className="co-wrap">Missing checkout data</div>
       </div>
     );
+  }
 
   return (
     <div className="co-page">
       <div className="co-wrap">
-        {/* TOP */}
         <div className="co-top">
           <button className="co-back" onClick={() => nav(-1)}>
             ← Back
@@ -98,9 +112,7 @@ export default function Checkout() {
         {err && <div className="co-warning">{err}</div>}
 
         <div className="co-grid">
-          {/* LEFT */}
           <div>
-            {/* SUMMARY */}
             <div className="co-card">
               <div className="co-cardTitle">Booking Summary</div>
 
@@ -130,14 +142,54 @@ export default function Checkout() {
                   <div className="sumValue">NPR {price}</div>
                 </div>
               </div>
+
+              <div style={{ height: 14 }} />
+
+              <div className="sumGrid">
+                <div className="sumBox">
+                  <div className="sumLabel">Booking Type</div>
+                  <div className="sumValue">
+                    {isOpenBooking ? "Open Booking" : "Private Booking"}
+                  </div>
+                </div>
+
+                <div className="sumBox">
+                  <div className="sumLabel">Required Players</div>
+                  <div className="sumValue">
+                    {isOpenBooking ? state.requiredPlayers || 1 : 1}
+                  </div>
+                </div>
+              </div>
+
+              {isOpenBooking && (
+                <>
+                  <div style={{ height: 14 }} />
+
+                  <div className="sumBox">
+                    <div className="sumLabel">Required Positions</div>
+                    <div className="sumValue">
+                      {prettyPositions.length
+                        ? prettyPositions.join(", ")
+                        : "No positions selected"}
+                    </div>
+                  </div>
+
+                  <div style={{ height: 12 }} />
+
+                  <div className="sumBox">
+                    <div className="sumLabel">Open Game Note</div>
+                    <div className="sumValue">
+                      {state.openGameNote || "No note added"}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
-            {/* PAYMENT OPTIONS */}
             <div className="co-card">
               <div className="co-cardTitle">Payment Options</div>
 
               <div className="payChoices">
-                {/* Pay Full Online */}
                 <button
                   type="button"
                   className={`payChoice ${
@@ -154,7 +206,6 @@ export default function Checkout() {
                   </div>
                 </button>
 
-                {/* Pay on Field (Deposit only now) */}
                 <button
                   type="button"
                   className={`payChoice ${
@@ -172,9 +223,8 @@ export default function Checkout() {
                 </button>
               </div>
 
-              {/* Deposit banner always (because compulsory),
-                  but amount changes based on mode */}
               <div style={{ height: 12 }} />
+
               <div className="depositNotice">
                 <div className="depositLeft">
                   <span className="depositBadge">Pay Now</span>
@@ -211,7 +261,6 @@ export default function Checkout() {
             </div>
           </div>
 
-          {/* RIGHT */}
           <div className="co-right">
             <div className="co-side">
               <div className="sideTitle">PAY & CONFIRM</div>
@@ -223,6 +272,11 @@ export default function Checkout() {
                     ? "Pay Online (Full)"
                     : "Pay on Field (Deposit)"}
                 </strong>
+              </div>
+
+              <div className="sideLine">
+                <span className="muted">Booking type</span>
+                <strong>{isOpenBooking ? "Open Booking" : "Private Booking"}</strong>
               </div>
 
               <div className="sideLine">
