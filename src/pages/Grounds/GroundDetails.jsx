@@ -40,6 +40,15 @@ const ymdLocal = (d) => {
   return `${yyyy}-${mm}-${dd}`;
 };
 
+function prettifyPosition(value) {
+  if (!value) return "";
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((x) => x.charAt(0).toUpperCase() + x.slice(1))
+    .join(" ");
+}
+
 export default function GroundDetails() {
   const { id } = useParams();
   const nav = useNavigate();
@@ -48,40 +57,24 @@ export default function GroundDetails() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  // UI state
   const [activeCourtId, setActiveCourtId] = useState(null);
 
-  // selectedSlot now includes backend times
   // { dayLabel, timeLabel, dateISO, dateYMD, start_time, end_time }
   const [selectedSlot, setSelectedSlot] = useState(null);
 
   const [promo, setPromo] = useState("");
 
-  // booking mode
   const [bookingMode, setBookingMode] = useState("PRIVATE");
-
-  // open game needed positions
   const [neededPositions, setNeededPositions] = useState([]);
-
-  // NEW: required players
   const [requiredPlayers, setRequiredPlayers] = useState(1);
-
-  // optional note for public booking
   const [openGameNote, setOpenGameNote] = useState("");
-
-  // local validation error
   const [bookingErr, setBookingErr] = useState("");
 
-  // date nav
   const [baseDate, setBaseDate] = useState(() => new Date());
 
-  // Slot statuses for each date:
   // slotMap["YYYY-MM-DD"]["06:00-07:00"] = { available: true, booked: false }
   const [slotMap, setSlotMap] = useState({});
 
-  // -----------------------------
-  // Fetch ground from backend
-  // -----------------------------
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -140,6 +133,10 @@ export default function GroundDetails() {
     return arr;
   }, [baseDate]);
 
+  const prettyNeededPositions = useMemo(() => {
+    return neededPositions.map(prettifyPosition);
+  }, [neededPositions]);
+
   const formatDay = (d) => d.toLocaleDateString(undefined, { weekday: "short" });
   const formatDateNum = (d) => d.getDate();
   const formatMonthTitle = (d) =>
@@ -149,10 +146,6 @@ export default function GroundDetails() {
       year: "numeric",
     });
 
-  // -----------------------------
-  // Fetch real slot statuses for visible 7 days
-  // GET /api/grounds/:id/slots/?date=YYYY-MM-DD
-  // -----------------------------
   useEffect(() => {
     if (!id) return;
 
@@ -277,6 +270,13 @@ export default function GroundDetails() {
       return;
     }
 
+    console.log("Checkout state data:", {
+      bookingType: bookingMode === "PUBLIC" ? "OPEN" : "CLOSED",
+      neededPositions,
+      requiredPlayers,
+      openGameNote,
+    });
+
     nav("/checkout", {
       state: {
         groundName: ground.name,
@@ -293,9 +293,9 @@ export default function GroundDetails() {
         groundId: ground.id,
         courtId: activeCourt?.id,
 
-        bookingType: bookingMode,
+        bookingType: bookingMode === "PUBLIC" ? "OPEN" : "CLOSED",
         neededPositions: bookingMode === "PUBLIC" ? neededPositions : [],
-        requiredPlayers: bookingMode === "PUBLIC" ? requiredPlayers : 0,
+        requiredPlayers: bookingMode === "PUBLIC" ? requiredPlayers : 1,
         openGameNote: bookingMode === "PUBLIC" ? openGameNote.trim() : "",
       },
     });
@@ -315,7 +315,6 @@ export default function GroundDetails() {
 
   return (
     <div className="gd-page">
-      {/* HERO */}
       <div
         className="gd-hero"
         style={{
@@ -328,10 +327,8 @@ export default function GroundDetails() {
         </div>
       </div>
 
-      {/* BODY */}
       <div className="gd-wrap">
         <div className="gd-grid">
-          {/* LEFT */}
           <div className="gd-left">
             <div className="gd-card">
               <div className="gd-cardTop">
@@ -362,7 +359,6 @@ export default function GroundDetails() {
               </div>
             </div>
 
-            {/* BOOKING TYPE */}
             <div className="gd-card">
               <div className="gd-sectionTitle" style={{ marginBottom: 12 }}>
                 Team Formation
@@ -450,7 +446,6 @@ export default function GroundDetails() {
               )}
             </div>
 
-            {/* SCHEDULE */}
             <div className="gd-schedule">
               <div className="gd-scheduleHead">
                 <button
@@ -495,7 +490,6 @@ export default function GroundDetails() {
               </div>
 
               <div className="gd-table">
-                {/* header row */}
                 <div className="gd-row gd-header">
                   <div className="gd-timeCell" />
                   {days.map((d, idx) => (
@@ -506,7 +500,6 @@ export default function GroundDetails() {
                   ))}
                 </div>
 
-                {/* time rows */}
                 {timeRows.map((t, timeIndex) => (
                   <div key={t} className="gd-row">
                     <div className="gd-timeCell">{t}</div>
@@ -570,7 +563,6 @@ export default function GroundDetails() {
             </div>
           </div>
 
-          {/* RIGHT */}
           <div className="gd-right">
             <div className="gd-sideCard">
               <div className="sideTitle">YOUR SELECTION</div>
@@ -615,8 +607,8 @@ export default function GroundDetails() {
                   <div className="openGameSummary">
                     <div className="summaryLabel">Needed Positions</div>
                     <div className="summaryValue">
-                      {neededPositions.length > 0
-                        ? neededPositions.join(", ")
+                      {prettyNeededPositions.length > 0
+                        ? prettyNeededPositions.join(", ")
                         : "No position selected"}
                     </div>
                   </div>
