@@ -24,9 +24,9 @@ import Notifications from "./pages/Notifications/Notifications";
 
 import OwnerRoute from "./components/OwnerRoute";
 import OwnerDashboard from "./pages/Dashboard/OwnerDashboard.jsx";
-import OwnerMyGrounds from "./pages/Owner/OwnerMyGrounds.jsx";
-import OwnerGroundBookings from "./pages/Owner/OwnerBookings.jsx";
-import OwnerReports from "./pages/Owner/OwnerReports.jsx";
+import OwnerMyGrounds from "./pages/Owner/OwnerMyGrounds/OwnerMyGrounds.jsx";
+import OwnerGroundBookings from "./pages/Owner/OwnerBookings/OwnerBookings.jsx";
+import OwnerReports from "./pages/Owner/OwnerReports/OwnerReports.jsx";
 import OwnerEditGround from "./pages/Owner/OwnerEditGrounds.jsx";
 
 import PlayerDashboard from "./pages/Dashboard/PlayerDashboard.jsx";
