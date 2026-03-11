@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { apiFetch } from "../../lib/api";
 import "./MyBookingDetails.css";
 
 export default function MyBookingDetails() {
@@ -7,6 +8,8 @@ export default function MyBookingDetails() {
   const { bookingId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const [booking, setBooking] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -16,58 +19,26 @@ export default function MyBookingDetails() {
     tx: "",
   });
 
-  const booking = useMemo(function () {
-    const data = [
-      {
-        booking_id: 101,
-        ground_id: 1,
-        ground_name: "Dhuku Futsal Hub",
-        date: "2026-02-20",
-        slot: "18:00 - 19:00",
-        booking_type: "PUBLIC",
-        payment_method: "FIELD",
-        status: "PENDING",
-        notes: "Bring bibs if possible.",
-      },
-      {
-        booking_id: 102,
-        ground_id: 3,
-        ground_name: "Field Futsal",
-        date: "2026-02-10",
-        slot: "19:00 - 20:00",
-        booking_type: "PRIVATE",
-        payment_method: "ONLINE",
-        status: "CONFIRMED",
-        notes: "",
-      },
-      {
-        booking_id: 88,
-        ground_id: 2,
-        ground_name: "Khelkunj Arena",
-        date: "2026-01-22",
-        slot: "17:00 - 18:00",
-        booking_type: "PUBLIC",
-        payment_method: "FIELD",
-        status: "COMPLETED",
-        notes: "Good match.",
-      },
-      {
-        booking_id: 77,
-        ground_id: 1,
-        ground_name: "Dhuku Futsal Hub",
-        date: "2026-01-10",
-        slot: "16:00 - 17:00",
-        booking_type: "PRIVATE",
-        payment_method: "FIELD",
-        status: "CANCELLED",
-        notes: "Cancelled due to rain.",
-      },
-    ];
+  useEffect(() => {
+    async function loadBooking() {
+      try {
+        setLoading(true);
+        setErr("");
 
-    const idNum = Number(bookingId);
-    return data.find(function (x) {
-      return x.booking_id === idNum;
-    });
+        const data = await apiFetch(`/api/bookings/${bookingId}/`);
+        setBooking(data);
+      } catch (error) {
+        console.error("Failed to load booking details:", error);
+        setErr(error.message || "Booking not found.");
+        setBooking(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (bookingId) {
+      loadBooking();
+    }
   }, [bookingId]);
 
   useEffect(() => {
@@ -93,6 +64,7 @@ export default function MyBookingDetails() {
     const newParams = new URLSearchParams(searchParams);
     newParams.delete("payment");
     newParams.delete("tx");
+    newParams.delete("booking_id");
 
     setSearchParams(newParams, { replace: true });
   };
@@ -100,7 +72,7 @@ export default function MyBookingDetails() {
   const statusClass = useMemo(function () {
     if (!booking) return "status-pill";
     if (booking.status === "PENDING") return "status-pill pending";
-    if (booking.status === "CONFIRMED") return "status-pill confirmed";
+    if (booking.status === "BOOKED") return "status-pill confirmed";
     if (booking.status === "COMPLETED") return "status-pill completed";
     return "status-pill cancelled";
   }, [booking]);
@@ -123,6 +95,24 @@ export default function MyBookingDetails() {
     setSuccess("Cancel request prepared (connect backend later).");
   };
 
+  const bookingTypeLabel = useMemo(() => {
+    if (!booking) return "";
+    if (booking.booking_type === "OPEN") return "PUBLIC";
+    if (booking.booking_type === "CLOSED") return "PRIVATE";
+    return booking.booking_type;
+  }, [booking]);
+
+  const paymentMethodLabel = useMemo(() => {
+    if (!booking) return "";
+    if (booking.source === "ONLINE") return "ONLINE";
+    return booking.source || "N/A";
+  }, [booking]);
+
+  const slotLabel = useMemo(() => {
+    if (!booking) return "";
+    return `${booking.start_time} - ${booking.end_time}`;
+  }, [booking]);
+
   return (
     <div className="page-bg">
       <div className="container">
@@ -136,11 +126,9 @@ export default function MyBookingDetails() {
 
             <p className="p">
               {booking
-                ? booking.date + " • " + booking.slot
+                ? booking.date + " • " + slotLabel
                 : "Review details and manage your booking."}
             </p>
-
-            <p className="p">Review details and manage your booking.</p>
           </div>
 
           <button className="btn outline" onClick={() => nav(-1)}>
@@ -148,12 +136,17 @@ export default function MyBookingDetails() {
           </button>
         </div>
 
-        {!booking ? (
+        {loading ? (
+          <div className="card details-card">
+            <div className="details-title">Loading...</div>
+            <div className="details-sub">Fetching booking details.</div>
+          </div>
+        ) : !booking ? (
           <div className="card details-card">
             <div className="details-title">Booking not found</div>
 
             <div className="details-sub">
-              This booking ID does not exist in demo data.
+              {err || "This booking could not be found."}
             </div>
 
             <div className="details-actions">
@@ -167,11 +160,11 @@ export default function MyBookingDetails() {
             <div className="details-topRow">
               <div className="details-left">
                 <div className="details-groundName">
-                  {booking.ground_name || "Ground #" + booking.ground_id}
+                  {booking.ground_name || "Ground #" + booking.ground}
                 </div>
 
                 <div className="details-muted">
-                  Ground ID: {booking.ground_id}
+                  Ground ID: {booking.ground}
                 </div>
               </div>
 
@@ -186,17 +179,24 @@ export default function MyBookingDetails() {
 
               <div className="info-card">
                 <div className="info-label">Time Slot</div>
-                <div className="info-value">{booking.slot}</div>
+                <div className="info-value">{slotLabel}</div>
               </div>
 
               <div className="info-card">
                 <div className="info-label">Booking Type</div>
-                <div className="info-value">{booking.booking_type}</div>
+                <div className="info-value">{bookingTypeLabel}</div>
               </div>
 
               <div className="info-card">
                 <div className="info-label">Payment</div>
-                <div className="info-value">{booking.payment_method}</div>
+                <div className="info-value">{paymentMethodLabel}</div>
+              </div>
+
+              <div className="info-card">
+                <div className="info-label">Paid Amount</div>
+                <div className="info-value">
+                  {booking.paid_amount ? `Rs. ${booking.paid_amount}` : "N/A"}
+                </div>
               </div>
             </div>
 
@@ -204,16 +204,16 @@ export default function MyBookingDetails() {
               <div className="details-label">Notes</div>
 
               <div className="details-text">
-                {booking.notes ? booking.notes : "No notes added."}
+                {booking.open_game_note ? booking.open_game_note : "No notes added."}
               </div>
             </div>
 
-            {booking.booking_type === "PUBLIC" ? (
+            {booking.booking_type === "OPEN" ? (
               <div className="details-section">
                 <div className="details-label">Public Match</div>
 
                 <div className="details-text">
-                  Players can request to join. (Requests UI will be added next.)
+                  Current Players: {booking.current_players} / {booking.required_players}
                 </div>
 
                 <div className="details-actions">
@@ -224,11 +224,11 @@ export default function MyBookingDetails() {
               </div>
             ) : null}
 
-            {err ? <div className="details-error">{err}</div> : null}
+            {err && booking ? <div className="details-error">{err}</div> : null}
             {success ? <div className="details-success">{success}</div> : null}
 
             <div className="details-actions">
-              <Link to={"/grounds/" + booking.ground_id} className="btn outline">
+              <Link to={"/grounds/" + booking.ground} className="btn outline">
                 View Ground
               </Link>
 
@@ -246,7 +246,6 @@ export default function MyBookingDetails() {
         )}
       </div>
 
-      {/* PAYMENT POPUP */}
       {paymentPopup.open ? (
         <div className="payment-popup-backdrop">
           <div className="payment-popup-card">
