@@ -13,26 +13,10 @@ export default function OwnerMyGrounds() {
         setLoading(true);
         setErr("");
 
-        const res = await apiFetch("/api/owner/grounds/");
-
-        if (!res.ok) {
-          let msg = `Failed to load your grounds. Status: ${res.status}`;
-          try {
-            const data = await res.json();
-            msg = data.detail || JSON.stringify(data);
-          } catch {
-            try {
-              msg = await res.text();
-            } catch {
-              msg = `Failed to load your grounds. Status: ${res.status}`;
-            }
-          }
-          throw new Error(msg);
-        }
-
-        const data = await res.json();
-        setGrounds(data);
+        const data = await apiFetch("/api/owner/grounds/");
+        setGrounds(Array.isArray(data) ? data : []);
       } catch (error) {
+        console.error("loadMyGrounds error:", error);
         setErr(error.message || "Something went wrong.");
       } finally {
         setLoading(false);
@@ -101,6 +85,7 @@ export default function OwnerMyGrounds() {
                 <p style={{ margin: "4px 0" }}>Rs. {g.price_per_hour}/hour</p>
                 <p style={{ margin: "4px 0" }}>Size: {g.ground_size}</p>
                 <p style={{ margin: "4px 0" }}>Status: {g.status}</p>
+                <p style={{ margin: "4px 0" }}>Owner ID: {g.owner_id}</p>
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
