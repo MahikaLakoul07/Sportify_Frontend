@@ -3,13 +3,22 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function OwnerRoute({ children }) {
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, booting } = useAuth();
 
-  // Not logged in → go login
-  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  // Wait until localStorage restore finishes
+  if (booting) {
+    return <div style={{ padding: 20 }}>Loading...</div>;
+  }
 
-  // Logged in but not owner → go home
-  if (user?.role !== "OWNER") return <Navigate to="/" replace />;
+  // Not logged in
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Logged in but not owner
+  if (user?.role !== "OWNER") {
+    return <Navigate to="/" replace />;
+  }
 
   return children;
 }

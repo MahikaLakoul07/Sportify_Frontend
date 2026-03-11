@@ -9,17 +9,18 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // Form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // UI state
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  const goDashboard = (role) => {
-    if (role === "OWNER") navigate("/owner");
-    else navigate("/player");
+  const goDashboard = (user) => {
+    if (user?.user_type === "owner" || user?.role === "OWNER") {
+      navigate("/owner");
+    } else {
+      navigate("/player");
+    }
   };
 
   const handleLogin = async (e) => {
@@ -28,20 +29,18 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // backend expects { email, password }
       const data = await apiFetch("/authapp/login/", {
         method: "POST",
         body: { email, password },
       });
 
-      // store tokens + user in AuthContext (updates navbar immediately)
       const u = login({
         user: data.user,
         access: data.access,
         refresh: data.refresh,
       });
 
-      goDashboard(u.role);
+      goDashboard(u);
     } catch (error) {
       setErr(error.message || "Invalid email or password");
     } finally {
