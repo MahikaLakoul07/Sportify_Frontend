@@ -22,15 +22,12 @@ import Chat from "./pages/Chat/Chat";
 import PlayerProfile from "./pages/Profile/PlayerProfile";
 import Notifications from "./pages/Notifications/Notifications";
 
-import PaymentSuccess from "./pages/PaymentSuccess.jsx";
-import PaymentFailure from "./pages/PaymentFailure.jsx";
-
 import OwnerRoute from "./components/OwnerRoute";
 import OwnerDashboard from "./pages/Dashboard/OwnerDashboard.jsx";
 import OwnerMyGrounds from "./pages/Owner/OwnerMyGrounds.jsx";
 import OwnerGroundBookings from "./pages/Owner/OwnerBookings.jsx";
-import OwnerReports from "./pages/Owner/OwnerReports.jsx"; 
-import OwnerEditGround from "./pages/Owner/OwnerEditGrounds.jsx"; 
+import OwnerReports from "./pages/Owner/OwnerReports.jsx";
+import OwnerEditGround from "./pages/Owner/OwnerEditGrounds.jsx";
 
 import PlayerDashboard from "./pages/Dashboard/PlayerDashboard.jsx";
 
@@ -56,8 +53,6 @@ const App = () => {
         <Route path="/chat" element={<Chat />} />
         <Route path="/playerprofile" element={<PlayerProfile />} />
         <Route path="/notifications" element={<Notifications />} />
-        <Route path="/payment/success" element={<PaymentSuccess />} />
-        <Route path="/payment/failure" element={<PaymentFailure />} />
 
         {/* PLAYER DASHBOARD */}
         <Route path="/player" element={<PlayerDashboard />} />
@@ -114,14 +109,14 @@ const App = () => {
 
         {/* OWNER'S REPORTS */}
         <Route
-          path="/owner/reports" 
+          path="/owner/reports"
           element={
             <OwnerRoute>
               <OwnerReports />
             </OwnerRoute>
           }
         />
-        
+
         {/* PLAYER BOOKINGS */}
         <Route path="/mybookings" element={<MyBookings />} />
         <Route path="/mybookings/:bookingId" element={<MyBookingDetails />} />
