@@ -40,8 +40,7 @@ export default function Navbar() {
 
         {/* RIGHT SIDE - Navigation Links */}
         <div className="navbar-links">
-          <Link to="/grounds">Grounds</Link>
-
+          
           {!isLoggedIn && (
             <>
               <Link to="/login" className="btn outline">Login</Link>

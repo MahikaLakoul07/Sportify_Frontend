@@ -69,13 +69,7 @@ export default function OwnerDashboard() {
           <p>Daily/weekly revenue and usage insights.</p>
           <span className="linkish">Open →</span>
         </div>
-
-        <div className="card ghost">
-          <h3>Quick Tip</h3>
-          <p>
-            Add clear photos + accurate price/hour. It increases bookings a lot.
-          </p>
-        </div>
+        
       </div>
 
     </div>

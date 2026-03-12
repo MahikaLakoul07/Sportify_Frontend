@@ -83,13 +83,6 @@ export default function PlayerDashboard() {
           <span className="linkish">Open →</span>
         </div>
 
-        <div className="card ghost">
-          <h3>Quick Tip</h3>
-          <p>
-            Join open games to meet new players and build your network.
-          </p>
-        </div>
-
       </div>
 
     </div>
