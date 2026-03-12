@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import "./OpenGameCard.css";
@@ -10,7 +9,7 @@ export default function OpenGameCard({
   time,
   requiredPlayers,
   phone,
-  chatLink = "/chat/temp-1",
+  chatLink = "/open-games",
 }) {
   return (
     <div className="openCard">
@@ -26,7 +25,7 @@ export default function OpenGameCard({
           <div><b>Phone:</b> {phone}</div>
         </div>
 
-        <Link to={`/userRequest`} className="btn primary openCard__btn">
+        <Link to={chatLink} className="btn primary openCard__btn">
           Join Game
         </Link>
       </div>
