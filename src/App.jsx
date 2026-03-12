@@ -28,6 +28,7 @@ import OwnerMyGrounds from "./pages/Owner/OwnerMyGrounds/OwnerMyGrounds.jsx";
 import OwnerGroundBookings from "./pages/Owner/OwnerBookings/OwnerBookings.jsx";
 import OwnerReports from "./pages/Owner/OwnerReports/OwnerReports.jsx";
 import OwnerEditGround from "./pages/Owner/OwnerEditGrounds/OwnerEditGrounds.jsx";
+import OpenGames from "./pages/OpenGames/OpenGames.jsx";
 
 import PlayerDashboard from "./pages/Dashboard/PlayerDashboard.jsx";
 
@@ -120,6 +121,8 @@ const App = () => {
         {/* PLAYER BOOKINGS */}
         <Route path="/mybookings" element={<MyBookings />} />
         <Route path="/mybookings/:bookingId" element={<MyBookingDetails />} />
+        <Route path="/open-games" element={<OpenGames />} />
+        
       </Routes>
 
       <Footer />
