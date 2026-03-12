@@ -1,0 +1,90 @@
+    .owner-bookings-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 28px 20px 36px;
+    color: #ffffff;
+    }
+
+    .owner-bookings-header {
+    margin-bottom: 22px;
+    }
+
+    .owner-bookings-title {
+    margin: 0 0 8px;
+    font-size: 32px;
+    font-weight: 800;
+    color: #ffffff;
+    }
+
+    .owner-bookings-subtitle {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 16px;
+    }
+
+    .owner-bookings-loading {
+    color: #cbd5e1;
+    }
+
+    .owner-bookings-error {
+    color: #fca5a5;
+    white-space: pre-wrap;
+    }
+
+    .owner-bookings-empty {
+    color: #cbd5e1;
+    }
+
+    .owner-bookings-list {
+    display: grid;
+    gap: 16px;
+    }
+
+    .owner-booking-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 20px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #09142f 0%, #081633 100%);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+    }
+
+    .owner-booking-main,
+    .owner-booking-side {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    }
+
+    .owner-booking-line {
+    margin: 0;
+    color: #dbe7ff;
+    font-size: 16px;
+    }
+
+    .owner-booking-line span {
+    color: #ffffff;
+    font-weight: 700;
+    }
+
+    .owner-bookings-back {
+    margin-top: 24px;
+    }
+
+    .owner-bookings-back-link {
+    text-decoration: none;
+    color: #c4b5fd;
+    font-weight: 500;
+    }
+
+    .owner-bookings-back-link:hover {
+    text-decoration: underline;
+    }
+
+    @media (max-width: 820px) {
+    .owner-booking-card {
+        flex-direction: column;
+    }
+    }
