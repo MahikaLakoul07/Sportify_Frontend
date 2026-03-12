@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { apiFetch } from "../../lib/api";
+import { apiFetch } from "../../../lib/api";
+import "./OwnerEditGrounds.css";
 
 export default function OwnerEditGround() {
   const { id } = useParams();
@@ -15,13 +16,14 @@ export default function OwnerEditGround() {
     name: "",
     location: "",
     price_per_hour: "",
-    description: "",
     phone: "",
     ground_size: "FIVE",
+    description: "",
   });
 
-  const [imagePreview, setImagePreview] = useState("");
-  const [imageFile, setImageFile] = useState(null);
+  const [image, setImage] = useState(null);
+  const [imageUrl, setImageUrl] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("");
 
   useEffect(() => {
     async function loadGround() {
@@ -29,25 +31,21 @@ export default function OwnerEditGround() {
         setLoading(true);
         setErr("");
 
-        const res = await apiFetch(`/api/grounds/${id}/`);
-        if (!res.ok) {
-          throw new Error("Failed to load ground details.");
-        }
-
-        const data = await res.json();
+        const data = await apiFetch(`/api/owner/grounds/${id}/edit/`);
 
         setForm({
           name: data.name || "",
           location: data.location || "",
           price_per_hour: data.price_per_hour || "",
-          description: data.description || "",
           phone: data.phone || "",
           ground_size: data.ground_size || "FIVE",
+          description: data.description || "",
         });
 
-        setImagePreview(data.image_url || "");
+        setImageUrl(data.image_url || "");
       } catch (error) {
-        setErr(error.message || "Something went wrong.");
+        console.error("loadGround error:", error);
+        setErr(error.message || "Failed to load ground details.");
       } finally {
         setLoading(false);
       }
@@ -56,20 +54,36 @@ export default function OwnerEditGround() {
     loadGround();
   }, [id]);
 
-  function handleChange(e) {
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  function onChange(e) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handleImageChange(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  function onFileChange(e) {
+    const file = e.target.files?.[0] || null;
+    setImage(file);
 
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    if (file) {
+      const localUrl = URL.createObjectURL(file);
+      setPreviewUrl(localUrl);
+    } else {
+      setPreviewUrl("");
+    }
   }
 
-  async function handleSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault();
 
     try {
@@ -77,176 +91,129 @@ export default function OwnerEditGround() {
       setErr("");
       setSuccess("");
 
-      const body = new FormData();
-      body.append("name", form.name);
-      body.append("location", form.location);
-      body.append("price_per_hour", form.price_per_hour);
-      body.append("description", form.description);
-      body.append("phone", form.phone);
-      body.append("ground_size", form.ground_size);
+      const formData = new FormData();
+      formData.append("name", form.name);
+      formData.append("location", form.location);
+      formData.append("price_per_hour", form.price_per_hour);
+      formData.append("phone", form.phone);
+      formData.append("ground_size", form.ground_size);
+      formData.append("description", form.description);
 
-      if (imageFile) {
-        body.append("image", imageFile);
+      if (image) {
+        formData.append("image", image);
       }
 
-      const res = await apiFetch(`/api/grounds/${id}/`, {
+      const updated = await apiFetch(`/api/owner/grounds/${id}/edit/`, {
         method: "PATCH",
-        body,
+        body: formData,
       });
 
-      if (!res.ok) {
-        let msg = "Failed to update ground.";
-        try {
-          const data = await res.json();
-          msg = data.detail || JSON.stringify(data);
-        } catch {
-          // ignore
-        }
-        throw new Error(msg);
+      setSuccess("Ground updated successfully.");
+
+      if (updated?.image_url) {
+        setImageUrl(updated.image_url);
       }
 
-      setSuccess("Ground updated successfully.");
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      setPreviewUrl("");
+      setImage(null);
 
       setTimeout(() => {
         navigate("/owner/grounds");
       }, 1000);
     } catch (error) {
-      setErr(error.message || "Something went wrong.");
+      console.error("updateGround error:", error);
+      setErr(error.message || "Failed to update ground.");
     } finally {
       setSaving(false);
     }
   }
 
-  if (loading) {
-    return (
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: 20 }}>
-        <p>Loading...</p>
-      </div>
-    );
-  }
+  const shownImage = previewUrl || imageUrl;
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: 20 }}>
-      <h2>Edit Ground</h2>
+    <div className="owner-edit-page">
+      <div className="owner-edit-wrap">
+        <h1 className="owner-edit-title">Edit Ground</h1>
 
-      {err && <p style={{ color: "red" }}>{err}</p>}
-      {success && <p style={{ color: "green" }}>{success}</p>}
+        {loading && <p>Loading ground details...</p>}
+        {err && <p className="owner-edit-error">{err}</p>}
+        {success && <p className="owner-edit-success">{success}</p>}
 
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: "grid", gap: 14, marginTop: 20 }}
-      >
-        <div>
-          <label>Ground Name</label>
-          <br />
-          <input
-            type="text"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            required
-            style={{ width: "100%", padding: 10 }}
-          />
-        </div>
-
-        <div>
-          <label>Location</label>
-          <br />
-          <input
-            type="text"
-            name="location"
-            value={form.location}
-            onChange={handleChange}
-            required
-            style={{ width: "100%", padding: 10 }}
-          />
-        </div>
-
-        <div>
-          <label>Price Per Hour</label>
-          <br />
-          <input
-            type="number"
-            name="price_per_hour"
-            value={form.price_per_hour}
-            onChange={handleChange}
-            required
-            style={{ width: "100%", padding: 10 }}
-          />
-        </div>
-
-        <div>
-          <label>Phone</label>
-          <br />
-          <input
-            type="text"
-            name="phone"
-            value={form.phone}
-            onChange={handleChange}
-            required
-            style={{ width: "100%", padding: 10 }}
-          />
-        </div>
-
-        <div>
-          <label>Ground Size</label>
-          <br />
-          <select
-            name="ground_size"
-            value={form.ground_size}
-            onChange={handleChange}
-            style={{ width: "100%", padding: 10 }}
-          >
-            <option value="FIVE">5A Side</option>
-            <option value="SEVEN">7A Side</option>
-            <option value="ELEVEN">11A Side</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Description</label>
-          <br />
-          <textarea
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-            rows={5}
-            style={{ width: "100%", padding: 10 }}
-          />
-        </div>
-
-        <div>
-          <label>Ground Image</label>
-          <br />
-          <input type="file" accept="image/*" onChange={handleImageChange} />
-        </div>
-
-        {imagePreview && (
-          <div>
-            <img
-              src={imagePreview}
-              alt="Preview"
-              style={{
-                width: 220,
-                height: 160,
-                objectFit: "cover",
-                borderRadius: 10,
-                border: "1px solid #ddd",
-              }}
+        {!loading && (
+          <form className="owner-edit-form" onSubmit={onSubmit}>
+            <label>Ground Name</label>
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={onChange}
             />
-          </div>
+
+            <label>Location</label>
+            <input
+              type="text"
+              name="location"
+              value={form.location}
+              onChange={onChange}
+            />
+
+            <label>Price Per Hour</label>
+            <input
+              type="number"
+              name="price_per_hour"
+              value={form.price_per_hour}
+              onChange={onChange}
+            />
+
+            <label>Phone</label>
+            <input
+              type="text"
+              name="phone"
+              value={form.phone}
+              onChange={onChange}
+            />
+
+            <label>Ground Size</label>
+            <select
+              name="ground_size"
+              value={form.ground_size}
+              onChange={onChange}
+            >
+              <option value="FIVE">5A Side</option>
+              <option value="SEVEN">7A Side</option>
+              <option value="ELEVEN">11A Side</option>
+            </select>
+
+            <label>Description</label>
+            <textarea
+              name="description"
+              rows="6"
+              value={form.description}
+              onChange={onChange}
+            />
+
+            <label>Ground Image</label>
+            <input type="file" accept="image/*" onChange={onFileChange} />
+
+            {shownImage ? (
+              <div className="owner-edit-preview">
+                <img src={shownImage} alt="Ground preview" />
+              </div>
+            ) : null}
+
+            <div className="owner-edit-actions">
+              <button type="submit" disabled={saving}>
+                {saving ? "Saving..." : "Update Ground"}
+              </button>
+
+              <Link to="/owner/grounds">Cancel</Link>
+            </div>
+          </form>
         )}
-
-        <div style={{ display: "flex", gap: 12 }}>
-          <button type="submit" disabled={saving} style={{ padding: "10px 16px" }}>
-            {saving ? "Saving..." : "Save Changes"}
-          </button>
-
-          <Link to="/owner/grounds" style={{ padding: "10px 16px" }}>
-            Cancel
-          </Link>
-        </div>
-      </form>
+      </div>
     </div>
   );
 }
