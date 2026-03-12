@@ -6,7 +6,6 @@ import "./OwnerBookings.css";
 export default function OwnerGroundBookings() {
   const { id } = useParams();
 
-  const [ground, setGround] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
@@ -18,10 +17,9 @@ export default function OwnerGroundBookings() {
         setErr("");
 
         const data = await apiFetch(`/api/owner/grounds/${id}/bookings/`);
-        setGround(data?.ground || null);
-        setBookings(Array.isArray(data?.bookings) ? data.bookings : []);
+        setBookings(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error("loadBookings error:", error);
+        console.error("Failed to load ground bookings:", error);
         setErr(error.message || "Failed to load bookings.");
       } finally {
         setLoading(false);
@@ -35,11 +33,9 @@ export default function OwnerGroundBookings() {
     <div className="owner-bookings-page">
       <div className="owner-bookings-header">
         <h2 className="owner-bookings-title">Ground Bookings</h2>
-        {ground && (
-          <p className="owner-bookings-subtitle">
-            {ground.name} · {ground.location}
-          </p>
-        )}
+        <p className="owner-bookings-subtitle">
+          View all bookings made for this ground.
+        </p>
       </div>
 
       {loading && <p className="owner-bookings-loading">Loading...</p>}
@@ -55,28 +51,34 @@ export default function OwnerGroundBookings() {
             <div key={b.id} className="owner-booking-card">
               <div className="owner-booking-main">
                 <p className="owner-booking-line">
-                  <span>Date:</span> {b.date}
+                  Ground: <span>{b.ground_name}</span>
                 </p>
                 <p className="owner-booking-line">
-                  <span>Time:</span> {b.start_time} - {b.end_time}
+                  Date: <span>{b.date}</span>
                 </p>
                 <p className="owner-booking-line">
-                  <span>Status:</span> {b.status}
+                  Time: <span>{b.start_time} - {b.end_time}</span>
                 </p>
                 <p className="owner-booking-line">
-                  <span>Type:</span> {b.booking_type}
+                  Status: <span>{b.status}</span>
+                </p>
+                <p className="owner-booking-line">
+                  Type: <span>{b.booking_type}</span>
                 </p>
               </div>
 
               <div className="owner-booking-side">
                 <p className="owner-booking-line">
-                  <span>Players:</span> {b.current_players}/{b.required_players}
+                  Players: <span>{b.current_players} / {b.required_players}</span>
                 </p>
                 <p className="owner-booking-line">
-                  <span>Paid:</span> Rs. {b.paid_amount ?? 0}
+                  Paid Amount: <span>{b.paid_amount ? `Rs. ${b.paid_amount}` : "N/A"}</span>
                 </p>
                 <p className="owner-booking-line">
-                  <span>Source:</span> {b.source}
+                  Total Amount: <span>{b.total_amount ? `Rs. ${b.total_amount}` : "N/A"}</span>
+                </p>
+                <p className="owner-booking-line">
+                  Remaining Amount: <span>{b.remaining_amount ? `Rs. ${b.remaining_amount}` : "N/A"}</span>
                 </p>
               </div>
             </div>
