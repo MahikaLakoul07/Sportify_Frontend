@@ -18,7 +18,7 @@
 
 .owner-bookings-subtitle {
   margin: 0;
-  color: #cbd5e1;
+  color: #0e2c52;
   font-size: 16px;
 }
 
@@ -75,7 +75,7 @@
 
 .owner-bookings-back-link {
   text-decoration: none;
-  color: #c4b5fd;
+  color: hsl(252, 65%, 26%);
   font-weight: 500;
 }
 
