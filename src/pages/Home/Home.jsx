@@ -21,9 +21,7 @@ export default function Home() {
     const loadOpenGames = async () => {
       try {
         setLoadingOpenGames(true);
-        const data = await apiFetch("/api/bookings/open-games/?today=1", {
-          method: "GET",
-        });
+        const data = await apiFetch("/api/bookings/open-games/?today=1");
         setOpenGames(Array.isArray(data) ? data : []);
       } catch (e) {
         console.error("Failed to load open games", e);
@@ -157,17 +155,24 @@ export default function Home() {
             openGames.slice(0, 3).map((game, index) => (
               <OpenGameCard
                 key={game.id}
-                image={game.ground_image_url || fallbackImages[index % fallbackImages.length]}
+                image={
+                  game.ground_image_url ||
+                  fallbackImages[index % fallbackImages.length]
+                }
                 name={game.ground_name}
                 date={game.date}
                 time={`${game.start_time} - ${game.end_time}`}
-                requiredPlayers={`${game.spots_left} player${game.spots_left > 1 ? "s" : ""} needed`}
+                requiredPlayers={`${game.spots_left} player${
+                  game.spots_left > 1 ? "s" : ""
+                } needed`}
                 phone={game.ground_phone || "Contact not available"}
-                chatLink={`/open-games/${game.id}`}
+                chatLink="/open-games"
               />
             ))
           ) : (
-            <div style={{ color: "#cbd5f5" }}>No open games available for today.</div>
+            <div style={{ color: "#cbd5f5" }}>
+              No open games available for today.
+            </div>
           )}
         </div>
 
