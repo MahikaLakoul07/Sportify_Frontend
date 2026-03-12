@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { apiFetch } from "../../lib/api";
+import "./MyBookings.css";
 
 export default function MyBookings() {
   const navigate = useNavigate();
@@ -53,43 +54,89 @@ export default function MyBookings() {
     loadBookings();
   }, []);
 
+  function getStatusClass(status) {
+    if (status === "PENDING") return "status-pill pending";
+    if (status === "BOOKED") return "status-pill confirmed";
+    if (status === "COMPLETED") return "status-pill completed";
+    if (status === "CANCELLED") return "status-pill cancelled";
+    return "status-pill";
+  }
+
   return (
-    <div style={{ maxWidth: 1000, margin: "0 auto", padding: 20 }}>
-      <h2>My Bookings</h2>
-
-      {loading && <p>Loading...</p>}
-      {err && <p style={{ color: "red" }}>{err}</p>}
-
-      {!loading && !err && bookings.length === 0 && (
-        <p>No bookings found.</p>
-      )}
-
-      {!loading && !err && bookings.length > 0 && (
-        <div style={{ display: "grid", gap: 16 }}>
-          {bookings.map((b) => (
-            <div
-              key={b.id}
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: 12,
-                padding: 16,
-              }}
-            >
-              <h3 style={{ margin: "0 0 8px" }}>{b.ground_name}</h3>
-              <p style={{ margin: "4px 0" }}>{b.location}</p>
-              <p style={{ margin: "4px 0" }}>Date: {b.date}</p>
-              <p style={{ margin: "4px 0" }}>
-                Time: {b.start_time} - {b.end_time}
-              </p>
-              <p style={{ margin: "4px 0" }}>Status: {b.status}</p>
-
-              <div style={{ marginTop: 10 }}>
-                <Link to={`/mybookings/${b.id}`}>View Details</Link>
-              </div>
-            </div>
-          ))}
+    <div className="page-bg">
+      <div className="container">
+        <div className="mybookings-header">
+          <div>
+            <div className="badge">Bookings</div>
+            <h1 className="h1" style={{ marginTop: 10 }}>My Bookings</h1>
+            <p className="p">Track your booked grounds and payment status.</p>
+          </div>
         </div>
-      )}
+
+        {loading && (
+          <div className="card mybookings-empty">
+            <div className="empty-title">Loading...</div>
+            <div className="empty-sub">Please wait while we fetch your bookings.</div>
+          </div>
+        )}
+
+        {err && (
+          <div className="card mybookings-empty">
+            <div className="empty-title">Something went wrong</div>
+            <div className="empty-sub">{err}</div>
+          </div>
+        )}
+
+        {!loading && !err && bookings.length === 0 && (
+          <div className="card mybookings-empty">
+            <div className="empty-title">No bookings found</div>
+            <div className="empty-sub">
+              You have not made any bookings yet.
+            </div>
+            <div className="empty-actions">
+              <Link to="/grounds" className="btn primary">
+                Browse Grounds
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {!loading && !err && bookings.length > 0 && (
+          <div className="mybookings-grid">
+            {bookings.map((b) => (
+              <div key={b.id} className="card booking-card2">
+                <div className="booking-topRow">
+                  <div className="booking-title">{b.ground_name}</div>
+                  <div className={getStatusClass(b.status)}>{b.status}</div>
+                </div>
+
+                <div className="booking-metaRow">
+                  <span>{b.location}</span>
+                  <span>{b.date}</span>
+                </div>
+
+                <div className="booking-badges">
+                  <div className="pill">
+                    {b.start_time} - {b.end_time}
+                  </div>
+                  {b.booking_type ? (
+                    <div className="pill">{b.booking_type}</div>
+                  ) : null}
+                  {b.paid_amount ? (
+                    <div className="pill">Rs. {b.paid_amount}</div>
+                  ) : null}
+                </div>
+
+                <div className="booking-actions2">
+                  <Link to={`/mybookings/${b.id}`} className="btn primary">
+                    View Details
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
