@@ -3,23 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import "./Checkout.css";
 import { apiFetch } from "../../lib/api";
 
-function postToEsewa(actionUrl, fields) {
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.action = actionUrl;
-
-  Object.entries(fields).forEach(([k, v]) => {
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = k;
-    input.value = String(v);
-    form.appendChild(input);
-  });
-
-  document.body.appendChild(form);
-  form.submit();
-}
-
 function prettifyPosition(value) {
   if (!value) return "";
   return value
@@ -29,17 +12,49 @@ function prettifyPosition(value) {
     .join(" ");
 }
 
+function postToEsewa(actionUrl, fields) {
+  console.log("POSTING TO ESEWA URL:", actionUrl);
+  console.log("POSTING TO ESEWA FIELDS:", fields);
+
+  if (!actionUrl) {
+    throw new Error("Missing eSewa action URL.");
+  }
+
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = actionUrl;
+  form.style.display = "none";
+
+  Object.entries(fields || {}).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = key;
+    input.value = String(value);
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+}
+
 export default function Checkout() {
   const { state } = useLocation();
   const nav = useNavigate();
 
+  console.log("CHECKOUT MOUNTED");
+  console.log("CHECKOUT STATE:", state);
+
   const [paying, setPaying] = useState(false);
   const [err, setErr] = useState("");
-
   const [paymentMode, setPaymentMode] = useState("PAY_DEPOSIT");
 
   const price = Number(state?.price || 0);
-  const deposit = useMemo(() => Math.round(price * 0.2), [price]);
+
+  const deposit = useMemo(() => {
+    return Math.max(1, Math.round(price * 0.2));
+  }, [price]);
 
   const payNow = useMemo(() => {
     return paymentMode === "PAY_FULL_ONLINE" ? price : deposit;
@@ -56,31 +71,60 @@ export default function Checkout() {
   const isOpenBooking = state?.bookingType === "OPEN";
 
   const onPayEsewa = async () => {
+    console.log("PAY BUTTON CLICKED");
+    console.log("STATE AT CLICK:", state);
+
+    if (paying) return;
+
+    if (!state?.groundId || !state?.dateYMD || !state?.start_time || !state?.end_time) {
+      console.log("MISSING REQUIRED CHECKOUT STATE");
+      setErr("Missing booking data. Please go back and try again.");
+      return;
+    }
+
     setPaying(true);
     setErr("");
 
     try {
+      const payload = {
+        ground: state.groundId,
+        date: state.dateYMD,
+        start_time: state.start_time,
+        end_time: state.end_time,
+        booking_type: state.bookingType || "CLOSED",
+        required_players: state.requiredPlayers || 1,
+        open_game_note: state.openGameNote || "",
+        needed_positions: state.neededPositions || [],
+        total_amount: payNow,
+        payment_mode: paymentMode,
+      };
+
+      console.log("INIT PAYLOAD:", payload);
+
       const data = await apiFetch("/api/payments/esewa/initiate/", {
         method: "POST",
-        body: {
-          ground: state.groundId,
-          date: state.dateYMD,
-          start_time: state.start_time,
-          end_time: state.end_time,
-
-          booking_type: state.bookingType,
-          required_players: state.requiredPlayers || 1,
-          open_game_note: state.openGameNote || "",
-          needed_positions: state.neededPositions || [],
-
-          total_amount: payNow,
-          payment_mode: paymentMode,
-        },
+        body: payload,
       });
+
+      console.log("INIT RESPONSE:", data);
+
+      if (data?.mode === "mock" && data?.redirect_url) {
+        window.location.href = data.redirect_url;
+        return;
+      }
+
+      if (!data?.action_url) {
+        throw new Error("Missing eSewa action URL from backend.");
+      }
+
+      if (!data?.fields || typeof data.fields !== "object") {
+        throw new Error("Missing eSewa fields from backend.");
+      }
 
       postToEsewa(data.action_url, data.fields);
     } catch (e) {
-      setErr(e?.message || "Payment init failed");
+      console.error("PAYMENT INIT ERROR:", e);
+      setErr(e?.message || "Payment initialization failed.");
       setPaying(false);
     }
   };
@@ -88,7 +132,19 @@ export default function Checkout() {
   if (!state) {
     return (
       <div className="co-page">
-        <div className="co-wrap">Missing checkout data</div>
+        <div className="co-wrap">
+          <div className="co-card">
+            <div className="co-cardTitle">Missing checkout data</div>
+            <div className="helpText">
+              Booking information is missing. Please go back and select your ground, date, and slot again.
+            </div>
+            <div style={{ marginTop: 16 }}>
+              <button className="co-back" onClick={() => nav("/grounds")}>
+                Go to Grounds
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -192,9 +248,7 @@ export default function Checkout() {
               <div className="payChoices">
                 <button
                   type="button"
-                  className={`payChoice ${
-                    paymentMode === "PAY_FULL_ONLINE" ? "active" : ""
-                  }`}
+                  className={`payChoice ${paymentMode === "PAY_FULL_ONLINE" ? "active" : ""}`}
                   onClick={() => setPaymentMode("PAY_FULL_ONLINE")}
                 >
                   <div className="payChoiceTop">
@@ -208,9 +262,7 @@ export default function Checkout() {
 
                 <button
                   type="button"
-                  className={`payChoice ${
-                    paymentMode === "PAY_DEPOSIT" ? "active" : ""
-                  }`}
+                  className={`payChoice ${paymentMode === "PAY_DEPOSIT" ? "active" : ""}`}
                   onClick={() => setPaymentMode("PAY_DEPOSIT")}
                 >
                   <div className="payChoiceTop">
@@ -276,7 +328,9 @@ export default function Checkout() {
 
               <div className="sideLine">
                 <span className="muted">Booking type</span>
-                <strong>{isOpenBooking ? "Open Booking" : "Private Booking"}</strong>
+                <strong>
+                  {isOpenBooking ? "Open Booking" : "Private Booking"}
+                </strong>
               </div>
 
               <div className="sideLine">
