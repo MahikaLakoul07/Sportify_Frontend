@@ -104,9 +104,19 @@ export default function MyBookingDetails() {
 
   const paymentMethodLabel = useMemo(() => {
     if (!booking) return "";
-    if (booking.source === "ONLINE") return "ONLINE";
-    return booking.source || "N/A";
+
+    const mode = String(booking.payment_mode || "").toUpperCase();
+    const source = String(booking.source || "").toUpperCase();
+
+    if (mode === "PAY_DEPOSIT") return "PAY ON FIELD";
+    if (mode === "PAY_FULL_ONLINE") return "ONLINE";
+
+    if (source === "ONLINE") return "ONLINE";
+    if (source === "OFFLINE") return "PAY ON FIELD";
+
+    return "N/A";
   }, [booking]);
+
 
   const slotLabel = useMemo(() => {
     if (!booking) return "";
@@ -193,7 +203,9 @@ export default function MyBookingDetails() {
               </div>
 
               <div className="info-card">
-                <div className="info-label">Paid Amount</div>
+                <div className="info-label">
+                  {booking.payment_mode === "PAY_DEPOSIT" ? "Deposit Paid" : "Paid Amount"}
+                </div>
                 <div className="info-value">
                   {booking.paid_amount ? `Rs. ${booking.paid_amount}` : "N/A"}
                 </div>

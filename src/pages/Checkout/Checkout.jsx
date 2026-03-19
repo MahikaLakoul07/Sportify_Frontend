@@ -43,9 +43,6 @@ export default function Checkout() {
   const { state } = useLocation();
   const nav = useNavigate();
 
-  console.log("CHECKOUT MOUNTED");
-  console.log("CHECKOUT STATE:", state);
-
   const [paying, setPaying] = useState(false);
   const [err, setErr] = useState("");
   const [paymentMode, setPaymentMode] = useState("PAY_DEPOSIT");
@@ -71,13 +68,9 @@ export default function Checkout() {
   const isOpenBooking = state?.bookingType === "OPEN";
 
   const onPayEsewa = async () => {
-    console.log("PAY BUTTON CLICKED");
-    console.log("STATE AT CLICK:", state);
-
     if (paying) return;
 
     if (!state?.groundId || !state?.dateYMD || !state?.start_time || !state?.end_time) {
-      console.log("MISSING REQUIRED CHECKOUT STATE");
       setErr("Missing booking data. Please go back and try again.");
       return;
     }
@@ -99,14 +92,10 @@ export default function Checkout() {
         payment_mode: paymentMode,
       };
 
-      console.log("INIT PAYLOAD:", payload);
-
       const data = await apiFetch("/api/payments/esewa/initiate/", {
         method: "POST",
         body: payload,
       });
-
-      console.log("INIT RESPONSE:", data);
 
       if (data?.mode === "mock" && data?.redirect_url) {
         window.location.href = data.redirect_url;
@@ -237,6 +226,13 @@ export default function Checkout() {
                     <div className="sumValue">
                       {state.openGameNote || "No note added"}
                     </div>
+                  </div>
+
+                  <div style={{ height: 12 }} />
+
+                  <div className="helpText">
+                    For open bookings, a temporary group chat will be available
+                    after successful payment/booking confirmation.
                   </div>
                 </>
               )}

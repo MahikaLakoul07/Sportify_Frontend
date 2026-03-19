@@ -308,7 +308,9 @@ export default function BookGround() {
 
               <div className="summary-row">
                 <span className="summary-muted">Payment</span>
-                <span className="pill">{paymentMethod}</span>
+                <span className="pill">
+                  {paymentMethod === "FIELD" ? "PAY ON FIELD" : "ONLINE"}
+                </span>
               </div>
 
               <div className="summary-hint">
