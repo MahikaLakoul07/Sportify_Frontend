@@ -189,26 +189,44 @@ export default function GroundDetails() {
   }, [id, days]);
 
   const getCellStatus = (dayIndex, timeIndex) => {
-    const today = new Date();
+    const now = new Date();
     const day = days[dayIndex];
 
-    const isPast =
-      new Date(day.getFullYear(), day.getMonth(), day.getDate()) <
-      new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const cellDayOnly = new Date(day.getFullYear(), day.getMonth(), day.getDate());
 
-    if (isPast) return "PAST";
+    // block previous dates
+    if (cellDayOnly < todayOnly) return "PAST";
 
     const slot = FIXED_SLOTS[timeIndex];
     const date = ymdLocal(day);
 
-    const info = slotMap?.[date]?.[slotKey(slot.start, slot.end)];
+    // block past time slots for today
+    if (cellDayOnly.getTime() === todayOnly.getTime()) {
+      const [startHour, startMinute] = slot.start.split(":").map(Number);
 
-    if (!info) return "LOADING";
-    if (info.booked) return "BOOKED";
-    if (info.available) return "AVAILABLE";
-    return "CLOSED";
-  };
+      const slotStart = new Date(
+        day.getFullYear(),
+        day.getMonth(),
+        day.getDate(),
+        startHour,
+        startMinute,
+        0,
+        0
+      );
 
+      if (slotStart <= now) {
+        return "PAST";
+      }
+    }
+
+  const info = slotMap?.[date]?.[slotKey(slot.start, slot.end)];
+
+  if (!info) return "LOADING";
+  if (info.booked) return "BOOKED";
+  if (info.available) return "AVAILABLE";
+  return "CLOSED";
+};
   // changed: multi-slot picker, max 5, same day, consecutive only
   const onPickSlot = (dayIndex, timeIndex) => {
     const status = getCellStatus(dayIndex, timeIndex);
