@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { apiFetch } from "../../lib/api";
 import "./Chat.css";
 
 export default function Chat() {
@@ -10,80 +11,77 @@ export default function Chat() {
   const isGroup = pathname.includes("/chat/group/");
   const title = isGroup ? "Group Chat" : "Friend Chat";
 
-  // ✅ MOCK CHAT HEADER INFO (based on route type)
-  const chatInfo = useMemo(() => {
-    if (isGroup) {
-      return {
-        id,
-        name: "Kamal Pokhari Open Game",
-        meta: "8 members • Match day discussion",
-      };
-    }
-    return {
-      id,
-      name: "Sagar Shrestha",
-      meta: "Last seen recently",
-    };
-  }, [id, isGroup]);
-
-  // ✅ MOCK MESSAGES
-  const [messages, setMessages] = useState(() => [
-    {
-      id: 1,
-      by: "other",
-      text: isGroup
-        ? "Guys, 1 defender needed. Who’s coming?"
-        : "Bro, game confirm ho?",
-      time: "6:40 PM",
-      senderName: isGroup ? "Aayush" : null,
-    },
-    {
-      id: 2,
-      by: "me",
-      text: "Ma aunchu. Time kati ho?",
-      time: "6:41 PM",
-      senderName: isGroup ? "You" : null,
-    },
-    {
-      id: 3,
-      by: "other",
-      text: isGroup ? "12 PM sharp. Court booked ✅" : "12 PM. Islington.",
-      time: "6:42 PM",
-      senderName: isGroup ? "Rohit" : null,
-    },
-  ]);
-
+  const [chatInfo, setChatInfo] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
 
   const endRef = useRef(null);
-  const scrollToBottom = () => endRef.current?.scrollIntoView({ behavior: "smooth" });
+
+  const scrollToBottom = () =>
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
+  const loadGroupChat = async () => {
+    try {
+      setErr("");
+
+      const [groupData, messageData] = await Promise.all([
+        apiFetch(`/api/chat-groups/${id}/`),
+        apiFetch(`/api/chat-groups/${id}/messages/`),
+      ]);
+
+      setChatInfo(groupData);
+      setMessages(Array.isArray(messageData) ? messageData : []);
+    } catch (e) {
+      console.error("Failed to load chat", e);
+      setErr(e?.message || "Failed to load chat.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isGroup) {
+      setLoading(false);
+      return;
+    }
+
+    loadGroupChat();
+
+    const timer = setInterval(() => {
+      loadGroupChat();
+    }, 3000);
+
+    return () => clearInterval(timer);
+  }, [id, isGroup]);
+
   const send = async () => {
     const t = text.trim();
-    if (!t) return;
+    if (!t || !isGroup) return;
 
     setSending(true);
-
-    // add message instantly (optimistic)
-    const newMsg = {
-      id: Date.now(),
-      by: "me",
-      text: t,
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      senderName: isGroup ? "You" : null,
-    };
-
-    setMessages((p) => [...p, newMsg]);
-    setText("");
+    setErr("");
 
     try {
-      // Later: POST /chats/:id/messages
-      await new Promise((r) => setTimeout(r, 300));
+      const created = await apiFetch(`/api/chat-groups/${id}/messages/`, {
+        method: "POST",
+        body: JSON.stringify({ message: t }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      setMessages((prev) => [...prev, created]);
+      setText("");
+    } catch (e) {
+      console.error("Failed to send message", e);
+      setErr(e?.message || "Failed to send message.");
     } finally {
       setSending(false);
     }
@@ -96,10 +94,25 @@ export default function Chat() {
     }
   };
 
+  const headerInfo = useMemo(() => {
+    if (isGroup) {
+      return {
+        name: chatInfo?.name || "Group Chat",
+        meta: chatInfo
+          ? `${chatInfo.member_count || 0} members • Temporary match chat`
+          : "",
+      };
+    }
+
+    return {
+      name: "Friend Chat",
+      meta: "Friend chat backend not connected yet",
+    };
+  }, [isGroup, chatInfo]);
+
   return (
     <div className="chat-page">
       <div className="chat-wrap">
-        {/* Header */}
         <div className="chat-top">
           <button className="chat-back" onClick={() => nav(-1)} type="button">
             ← Back
@@ -107,10 +120,10 @@ export default function Chat() {
 
           <div className="chat-headInfo">
             <div className="chat-titleRow">
-              <div className="chat-avatar">{getInitials(chatInfo.name)}</div>
+              <div className="chat-avatar">{getInitials(headerInfo.name)}</div>
               <div>
-                <div className="chat-name">{chatInfo.name}</div>
-                <div className="chat-meta">{chatInfo.meta}</div>
+                <div className="chat-name">{headerInfo.name}</div>
+                <div className="chat-meta">{headerInfo.meta}</div>
               </div>
             </div>
 
@@ -118,45 +131,67 @@ export default function Chat() {
           </div>
         </div>
 
-        {/* Body */}
         <div className="chat-card">
-          <div className="chat-messages">
-            {messages.map((m) => (
-              <div
-                key={m.id}
-                className={`msg ${m.by === "me" ? "me" : "other"}`}
-              >
-                {isGroup && m.by !== "me" && (
-                  <div className="msg-sender">{m.senderName}</div>
-                )}
+          {loading ? (
+            <div className="chat-messages">Loading chat...</div>
+          ) : err ? (
+            <div className="chat-messages">{err}</div>
+          ) : !isGroup ? (
+            <div className="chat-messages">Friend chat backend not connected yet.</div>
+          ) : (
+            <>
+              <div className="chat-messages">
+                {messages.map((m) => {
+                  const mine =
+                    m.by === "me" ||
+                    m.sender === "me" ||
+                    m.is_mine === true;
 
-                <div className="msg-bubble">{m.text}</div>
-                <div className="msg-time">{m.time}</div>
+                  return (
+                    <div
+                      key={m.id}
+                      className={`msg ${mine ? "me" : "other"}`}
+                    >
+                      {!mine && (
+                        <div className="msg-sender">
+                          {m.sender_name || "User"}
+                        </div>
+                      )}
+
+                      <div className="msg-bubble">
+                        {m.message || m.text}
+                      </div>
+
+                      <div className="msg-time">
+                        {formatMsgTime(m.created_at || m.time)}
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={endRef} />
               </div>
-            ))}
-            <div ref={endRef} />
-          </div>
 
-          {/* Composer */}
-          <div className="chat-compose">
-            <textarea
-              className="chat-input"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={onKeyDown}
-              placeholder="Type a message..."
-              rows={1}
-            />
+              <div className="chat-compose">
+                <textarea
+                  className="chat-input"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  onKeyDown={onKeyDown}
+                  placeholder="Type a message..."
+                  rows={1}
+                />
 
-            <button
-              className="chat-send"
-              type="button"
-              onClick={send}
-              disabled={sending}
-            >
-              {sending ? "Sending..." : "Send"}
-            </button>
-          </div>
+                <button
+                  className="chat-send"
+                  type="button"
+                  onClick={send}
+                  disabled={sending}
+                >
+                  {sending ? "Sending..." : "Send"}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -170,4 +205,15 @@ function getInitials(text) {
   const a = parts[0]?.[0] || "C";
   const b = parts[1]?.[0] || "";
   return (a + b).toUpperCase();
+}
+
+function formatMsgTime(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+
+  return d.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
