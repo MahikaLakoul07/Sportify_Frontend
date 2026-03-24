@@ -17,6 +17,11 @@ export default function Home() {
   const [openGames, setOpenGames] = useState([]);
   const [loadingOpenGames, setLoadingOpenGames] = useState(true);
 
+  const [featuredGrounds, setFeaturedGrounds] = useState([]);
+  const [loadingFeaturedGrounds, setLoadingFeaturedGrounds] = useState(true);
+
+  const fallbackImages = [dhukuFutsalHub, khelkunjArena, fieldFutsal];
+
   useEffect(() => {
     const loadOpenGames = async () => {
       try {
@@ -34,7 +39,25 @@ export default function Home() {
     loadOpenGames();
   }, []);
 
-  const fallbackImages = [dhukuFutsalHub, khelkunjArena, fieldFutsal];
+  useEffect(() => {
+    const loadFeaturedGrounds = async () => {
+      try {
+        setLoadingFeaturedGrounds(true);
+
+        const data = await apiFetch("/api/grounds/");
+        const grounds = Array.isArray(data) ? data : data?.results || [];
+
+        setFeaturedGrounds(grounds.slice(0, 3));
+      } catch (e) {
+        console.error("Failed to load featured grounds", e);
+        setFeaturedGrounds([]);
+      } finally {
+        setLoadingFeaturedGrounds(false);
+      }
+    };
+
+    loadFeaturedGrounds();
+  }, []);
 
   return (
     <div className="page">
@@ -108,38 +131,29 @@ export default function Home() {
         <h3>Featured Futsal Grounds</h3>
 
         <div className="feature-grid">
-          <div className="featured-wrap">
-            <GroundCard
-              id="featured-1"
-              image={dhukuFutsalHub}
-              name="Dhuku Futsal Hub"
-              location="Kathmandu"
-              desc="Modern futsal ground with premium turf and night lighting."
-              to="/grounds"
-            />
-          </div>
-
-          <div className="featured-wrap">
-            <GroundCard
-              id="featured-2"
-              image={khelkunjArena}
-              name="Khelkunj Arena"
-              location="Pokhara"
-              desc="Popular futsal venue with flexible slots and easy parking."
-              to="/grounds"
-            />
-          </div>
-
-          <div className="featured-wrap">
-            <GroundCard
-              id="featured-3"
-              image={fieldFutsal}
-              name="Field Futsal"
-              location="Lalitpur"
-              desc="Well-maintained ground ideal for competitive and friendly matches."
-              to="/grounds"
-            />
-          </div>
+          {loadingFeaturedGrounds ? (
+            <div style={{ color: "#cbd5f5" }}>Loading featured grounds...</div>
+          ) : featuredGrounds.length > 0 ? (
+            featuredGrounds.map((ground, index) => (
+              <div className="featured-wrap" key={ground.id}>
+                <GroundCard
+                  id={ground.id}
+                  image={
+                    ground.image_url ||
+                    fallbackImages[index % fallbackImages.length]
+                  }
+                  name={ground.name}
+                  location={ground.location}
+                  desc={ground.description || "No description available."}
+                  to={`/grounds/${ground.id}`}
+                />
+              </div>
+            ))
+          ) : (
+            <div style={{ color: "#cbd5f5" }}>
+              No featured grounds available right now.
+            </div>
+          )}
         </div>
       </section>
 
