@@ -11,11 +11,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 20px;
   background: #0f172a;
-  border: 1px solid rgba(203,213,245,0.15);
+  border: 1px solid rgba(203, 213, 245, 0.15);
   border-radius: 22px;
   padding: 30px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
 }
 
 .playerDash__header h1 {
@@ -28,6 +29,74 @@
   margin-top: 10px;
   color: #cbd5f5;
   font-size: 15px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.navIconBtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(52, 211, 153, 0.18);
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.96));
+  color: #e5eefc;
+  cursor: pointer;
+  transition: 0.22s ease;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.navIconBtn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(52, 211, 153, 0.45);
+  background: linear-gradient(145deg, #111c33, #0f172a);
+}
+
+.navIconBtn__icon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #34d399;
+}
+
+.navIconBtn__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.navIconBtn__text {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.navIconBtn__badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #10b981;
+  color: #06131f;
+  font-size: 12px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0f172a;
+  box-shadow: 0 8px 18px rgba(16, 185, 129, 0.35);
 }
 
 .primaryBtn {
@@ -58,7 +127,7 @@
   background: linear-gradient(145deg, #0b1220, #111a2f);
   border-radius: 20px;
   padding: 24px;
-  border: 1px solid rgba(16,185,129,0.25);
+  border: 1px solid rgba(16, 185, 129, 0.25);
   position: relative;
   overflow: hidden;
   transition: 0.25s ease;
@@ -75,7 +144,7 @@
 }
 
 .statCard:hover {
-  border-color: rgba(52,211,153,0.5);
+  border-color: rgba(52, 211, 153, 0.5);
   transform: translateY(-4px);
 }
 
@@ -108,15 +177,15 @@
   background: #0f172a;
   border-radius: 20px;
   padding: 24px;
-  border: 1px solid rgba(203,213,245,0.12);
+  border: 1px solid rgba(203, 213, 245, 0.12);
   cursor: pointer;
   transition: 0.2s ease;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
 .card:hover {
   transform: translateY(-6px);
-  border-color: rgba(52,211,153,0.4);
+  border-color: rgba(52, 211, 153, 0.4);
 }
 
 .card h3 {
@@ -142,9 +211,48 @@
 .card.ghost {
   background: #111827;
   cursor: default;
-  border: 1px solid rgba(203,213,245,0.08);
+  border: 1px solid rgba(203, 213, 245, 0.08);
 }
 
 .card.ghost p {
   color: #cbd5f5;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .playerDash__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .headerActions {
+    width: 100%;
+  }
+
+  .primaryBtn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .navIconBtn {
+    flex: 1 1 calc(50% - 6px);
+    justify-content: center;
+  }
+
+  .primaryBtn {
+    width: 100%;
+  }
+
+  .playerDash {
+    padding: 24px 16px 60px;
+  }
+
+  .playerDash__header {
+    padding: 22px;
+  }
+
+  .playerDash__header h1 {
+    font-size: 28px;
+  }
 }
