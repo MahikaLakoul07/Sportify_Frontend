@@ -19,7 +19,6 @@ export default function Navbar() {
     navigate("/");
   };
 
-  // close dropdown if clicked outside
   useEffect(() => {
     const handler = (e) => {
       if (!menuRef.current) return;
@@ -28,7 +27,6 @@ export default function Navbar() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
-
   return (
     <nav className="navbar">
       <div className="navbar-container">
@@ -69,53 +67,55 @@ export default function Navbar() {
                 </Link>
               )}
 
-              {/* DROPDOWN MENU */}
-              <div className="dd" ref={menuRef}>
+              {user?.role === "PLAYER" ? (
                 <button
-                  className="btn outline dd-btn"
-                  onClick={() => setOpen((p) => !p)}
+                  onClick={handleLogout}
                   type="button"
+                  className="btn danger"
                 >
-                  Menu <span className={`dd-caret ${open ? "up" : ""}`}>▾</span>
+                  Logout
                 </button>
+              ) : (
+                <div className="dd" ref={menuRef}>
+                  <button
+                    className="btn outline dd-btn"
+                    onClick={() => setOpen((p) => !p)}
+                    type="button"
+                  >
+                    Menu <span className={`dd-caret ${open ? "up" : ""}`}>▾</span>
+                  </button>
 
-                {open && (
-                  <div className="dd-menu">
-                    {/* OWNER MENU */}
-                    {user?.role === "OWNER" && (
-                      <>
-                        <Link to="/createground" className="dd-item strong">
-                          + Create Ground
-                        </Link>
-                        <Link to="/owner/grounds" className="dd-item">
-                          Manage Grounds
-                        </Link>
-                        <Link to="/owner/bookings" className="dd-item">
-                          Bookings
-                        </Link>
-                        <Link to="/owner/reports" className="dd-item">
-                          Reports
-                        </Link>
-                      </>
-                    )}
+                  {open && (
+                    <div className="dd-menu">
+                      {/* OWNER MENU */}
+                      {user?.role === "OWNER" && (
+                        <>
+                          <Link to="/createground" className="dd-item strong">
+                            + Create Ground
+                          </Link>
+                          <Link to="/owner/grounds" className="dd-item">
+                            Manage Grounds
+                          </Link>
+                          <Link to="/owner/bookings" className="dd-item">
+                            Bookings
+                          </Link>
+                          <Link to="/owner/reports" className="dd-item">
+                            Reports
+                          </Link>
+                        </>
+                      )}
 
-                    {/* PLAYER MENU */}
-                    {user?.role === "PLAYER" && (
-                      <>
-                        <Link to="/mybookings" className="dd-item">
-                          My Bookings
-                        </Link>
-                      </>
-                    )}
+                     
 
-                    <div className="dd-divider" />
+                      <div className="dd-divider" />
 
-                    <button className="dd-item danger" onClick={handleLogout} type="button">
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
+                      <button className="dd-item danger" onClick={handleLogout} type="button">
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>
