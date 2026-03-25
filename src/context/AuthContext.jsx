@@ -66,8 +66,16 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const updateUser = (updates) => {
+    if (user) {
+      const updatedUser = { ...user, ...updates };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      setUser(updatedUser);
+    }
+  };
+
   const value = useMemo(
-    () => ({ user, isLoggedIn, login, logout, booting }),
+    () => ({ user, isLoggedIn, login, logout, updateUser, booting }),
     [user, isLoggedIn, booting]
   );
 
