@@ -180,7 +180,7 @@ export default function Home() {
                   game.spots_left > 1 ? "s" : ""
                 } needed`}
                 phone={game.ground_phone || "Contact not available"}
-                chatLink="/open-games"
+                chatLink={`/open-games/${game.id}`}
               />
             ))
           ) : (
