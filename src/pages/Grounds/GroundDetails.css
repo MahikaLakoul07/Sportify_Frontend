@@ -223,30 +223,208 @@
 /* RIGHT SIDE CARD */
 /* ---------------- */
 
-.openGameSummary {
-  margin-top: 14px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.05);
+.gd-grid,
+.oa-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 20px;
+  align-items: start;
+}
+
+.gd-right,
+.oa-right {
+  min-width: 0;
+}
+
+.gd-sideCard,
+.oa-sideCard {
+  position: sticky;
+  top: 92px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(11, 19, 36, 0.98));
   border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  box-shadow: 0 16px 35px rgba(0,0,0,0.24);
+}
+
+.sideTitle {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #9ba8c2;
+  margin-bottom: 12px;
+}
+
+.sidePick {
   display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.bar {
+  width: 5px;
+  min-height: 42px;
+  border-radius: 999px;
+  background: #3151ff;
+}
+
+.pickText {
+  flex: 1;
+  min-width: 0;
+}
+
+.pickTop {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.pickTop strong {
+  font-size: 16px;
+  color: #fff;
+}
+
+.pillSmall {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  font-size: 11px;
+  font-weight: 700;
+  color: #dbe5f7;
+}
+
+.xBtn {
+  border: none;
+  background: transparent;
+  color: #cfd7e7;
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.amountBox {
+  margin-top: 14px;
+  padding: 14px 15px;
+  border-radius: 16px;
+  background: rgba(255, 184, 107, 0.07);
+  border: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  justify-content: space-between;
   gap: 12px;
   align-items: center;
 }
 
-.summaryLabel {
+.amountLabel {
   font-size: 12px;
-  font-weight: 700;
-  color: #a8b3d3;
+  font-weight: 800;
+  color: #c6cfe2;
   margin-bottom: 4px;
+}
+
+.amountRight {
+  text-align: right;
+}
+
+.amountMain {
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.payRow {
+  margin-top: 14px;
+  padding: 8px 2px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.payTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: #cdd7ea;
+}
+
+.payNow {
+  font-size: 16px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.openGameSummary {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  display: block;
+}
+
+.summaryLabel {
+  font-size: 11px;
+  font-weight: 800;
+  color: #9fb0ce;
+  margin-bottom: 6px;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
 }
 
 .summaryValue {
-  font-size: 14px;
+  font-size: 13px;
   color: #ffffff;
   font-weight: 600;
+  line-height: 1.5;
+}
+
+.reasonField {
+  width: 100%;
+  margin-top: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  color: #fff;
+  border-radius: 14px;
+  padding: 12px 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.reasonField:focus,
+.openGameTextarea:focus,
+.requiredPlayersSelect:focus {
+  outline: none;
+  border-color: #4f6bff;
+}
+
+.checkoutBtn {
+  width: 100%;
+  margin-top: 14px;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: linear-gradient(90deg, #243cff, #1d2eff);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.checkoutBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.finePrint {
+  margin-top: 10px;
+  text-align: center;
+  color: #9ca8bf;
+  font-size: 13px;
   line-height: 1.5;
 }
 
@@ -267,6 +445,26 @@
 /* ---------------- */
 /* MOBILE */
 /* ---------------- */
+
+@media (max-width: 1200px) {
+  .gd-grid,
+  .oa-grid {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .gd-grid,
+  .oa-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gd-sideCard,
+  .oa-sideCard {
+    position: static;
+    top: auto;
+  }
+}
 
 @media (max-width: 768px) {
   .bookingModeRow {
