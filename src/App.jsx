@@ -29,6 +29,7 @@ import OwnerGroundBookings from "./pages/Owner/OwnerBookings/OwnerBookings.jsx";
 import OwnerReports from "./pages/Owner/OwnerReports/OwnerReports.jsx";
 import OwnerEditGround from "./pages/Owner/OwnerEditGrounds/OwnerEditGrounds.jsx";
 import OpenGames from "./pages/OpenGames/OpenGames.jsx";
+import OwnerGroundAvailability from "./pages/Owner/OwnerGroundAvailability/OwnerGroundAvailability.jsx";
 
 import PlayerDashboard from "./pages/Dashboard/PlayerDashboard.jsx";
 
@@ -54,6 +55,7 @@ const App = () => {
         <Route path="/chat" element={<Chat />} />
         <Route path="/playerprofile" element={<PlayerProfile />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/owner/grounds/:id/availability" element={<OwnerGroundAvailability />} />
 
         {/* PLAYER DASHBOARD */}
         <Route path="/player" element={<PlayerDashboard />} />
