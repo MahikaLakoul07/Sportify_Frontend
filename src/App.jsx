@@ -124,7 +124,7 @@ const App = () => {
         <Route path="/mybookings" element={<MyBookings />} />
         <Route path="/mybookings/:bookingId" element={<MyBookingDetails />} />
         <Route path="/open-games" element={<OpenGames />} />
-        
+        <Route path="/open-games/:id" element={<OpenGames />} />
       </Routes>
 
       <Footer />
