@@ -9,17 +9,18 @@ export default function Inbox() {
   const [tab, setTab] = useState("friends");
   const [q, setQ] = useState("");
 
-  const [friendChats] = useState([]);
+  const [friendChats, setFriendChats] = useState([]);
   const [groupChats, setGroupChats] = useState([]);
   const [loadingGroups, setLoadingGroups] = useState(false);
+  const [loadingFriends, setLoadingFriends] = useState(false);
   const [groupErr, setGroupErr] = useState("");
+  const [friendErr, setFriendErr] = useState("");
 
   useEffect(() => {
     const loadGroups = async () => {
       try {
         setLoadingGroups(true);
         setGroupErr("");
-
         const data = await apiFetch("/api/chat-groups/my/");
         setGroupChats(Array.isArray(data) ? data : []);
       } catch (e) {
@@ -31,7 +32,23 @@ export default function Inbox() {
       }
     };
 
+    const loadFriends = async () => {
+      try {
+        setLoadingFriends(true);
+        setFriendErr("");
+        const data = await apiFetch("/api/direct-chats/my/");
+        setFriendChats(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error("Failed to load friend chats", e);
+        setFriendErr(e?.message || "Failed to load friend chats.");
+        setFriendChats([]);
+      } finally {
+        setLoadingFriends(false);
+      }
+    };
+
     loadGroups();
+    loadFriends();
   }, []);
 
   const list = useMemo(() => {
@@ -40,7 +57,7 @@ export default function Inbox() {
     if (!query) return items;
 
     return items.filter((x) =>
-      (x?.title || x?.name || "").toLowerCase().includes(query)
+      (x?.other_username || x?.title || x?.name || "").toLowerCase().includes(query)
     );
   }, [tab, q, friendChats, groupChats]);
 
@@ -99,7 +116,11 @@ export default function Inbox() {
 
           <div className="inbox-list">
             {tab === "friends" ? (
-              list.length > 0 ? (
+              loadingFriends ? (
+                <div className="inbox-empty">Loading friend chats...</div>
+              ) : friendErr ? (
+                <div className="inbox-empty">{friendErr}</div>
+              ) : list.length > 0 ? (
                 list.map((item) => (
                   <button
                     key={item.id}
@@ -108,12 +129,12 @@ export default function Inbox() {
                     onClick={() => openChat(item)}
                   >
                     <div className="inbox-avatar">
-                      {getInitials(item?.title || item?.name || "Chat")}
+                      {getInitials(item?.other_username || "Chat")}
                     </div>
 
                     <div className="inbox-mid">
                       <div className="inbox-name">
-                        {item?.title || item?.name || "Untitled"}
+                        {item?.other_username || "User"}
                       </div>
                       <div className="inbox-last">
                         {item?.last_message || "No messages yet"}
@@ -121,17 +142,12 @@ export default function Inbox() {
                     </div>
 
                     <div className="inbox-right">
-                      <div className="inbox-time">{item?.last_time || ""}</div>
-                      {!!item?.unread_count && (
-                        <div className="inbox-badge">{item.unread_count}</div>
-                      )}
+                      <div className="inbox-time">{formatLastTime(item?.last_time)}</div>
                     </div>
                   </button>
                 ))
               ) : (
-                <div className="inbox-empty">
-                  Friend chat backend not connected yet.
-                </div>
+                <div className="inbox-empty">No friend chats found.</div>
               )
             ) : loadingGroups ? (
               <div className="inbox-empty">Loading groups...</div>

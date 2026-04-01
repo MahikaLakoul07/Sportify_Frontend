@@ -9,82 +9,138 @@ export default function Chat() {
   const { pathname } = useLocation();
 
   const isGroup = pathname.includes("/chat/group/");
+  const isDirect = pathname.includes("/chat/friend/") || pathname.includes("/chat/direct/");
   const title = isGroup ? "Group Chat" : "Friend Chat";
 
   const [chatInfo, setChatInfo] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
-  const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+  const [socketReady, setSocketReady] = useState(false);
 
+  const socketRef = useRef(null);
   const endRef = useRef(null);
 
-  const scrollToBottom = () =>
+  const API_HOST = import.meta.env.VITE_WS_HOST || "127.0.0.1:8000";
+  const myUserId = Number(localStorage.getItem("user_id"));
+
+  const scrollToBottom = () => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const loadGroupChat = async () => {
-    try {
-      setErr("");
+  useEffect(() => {
+    let isMounted = true;
 
-      const [groupData, messageData] = await Promise.all([
-        apiFetch(`/api/chat-groups/${id}/`),
-        apiFetch(`/api/chat-groups/${id}/messages/`),
-      ]);
+    const loadInitial = async () => {
+      try {
+        setErr("");
+        setLoading(true);
 
-      setChatInfo(groupData);
-      setMessages(Array.isArray(messageData) ? messageData : []);
-    } catch (e) {
-      console.error("Failed to load chat", e);
-      setErr(e?.message || "Failed to load chat.");
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (isGroup) {
+          const [groupData, messageData] = await Promise.all([
+            apiFetch(`/api/chat-groups/${id}/`),
+            apiFetch(`/api/chat-groups/${id}/messages/`),
+          ]);
+
+          if (!isMounted) return;
+          setChatInfo(groupData);
+          setMessages(Array.isArray(messageData) ? messageData : []);
+        } else if (isDirect) {
+          const [chatData, messageData] = await Promise.all([
+            apiFetch(`/api/direct-chats/${id}/`),
+            apiFetch(`/api/direct-chats/${id}/messages/`),
+          ]);
+
+          if (!isMounted) return;
+          setChatInfo(chatData);
+          setMessages(Array.isArray(messageData) ? messageData : []);
+        } else {
+          setErr("Invalid chat route.");
+        }
+      } catch (e) {
+        console.error(e);
+        if (isMounted) setErr(e?.message || "Failed to load chat.");
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    loadInitial();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, isGroup, isDirect]);
 
   useEffect(() => {
-    if (!isGroup) {
-      setLoading(false);
+    if (!isGroup && !isDirect) return;
+
+    const token = localStorage.getItem("access");
+    if (!token) {
+      setErr("Login required.");
       return;
     }
 
-    loadGroupChat();
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsPath = isGroup ? `/ws/chat/${id}/` : `/ws/direct-chat/${id}/`;
 
-    const timer = setInterval(() => {
-      loadGroupChat();
-    }, 3000);
+    const socket = new WebSocket(
+      `${protocol}://${API_HOST}${wsPath}?token=${token}`
+    );
 
-    return () => clearInterval(timer);
-  }, [id, isGroup]);
+    socketRef.current = socket;
 
-  const send = async () => {
+    socket.onopen = () => {
+      setSocketReady(true);
+      setErr("");
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        setMessages((prev) => {
+          const exists = prev.some((m) => String(m.id) === String(data.id));
+          if (exists) return prev;
+          return [
+            ...prev,
+            {
+              ...data,
+              is_mine: Number(data.sender_id) === myUserId,
+            },
+          ];
+        });
+      } catch (e) {
+        console.error("Bad socket message", e);
+      }
+    };
+
+    socket.onclose = () => {
+      setSocketReady(false);
+    };
+
+    socket.onerror = () => {
+      setErr("Socket connection failed.");
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, [id, isGroup, isDirect, API_HOST, myUserId]);
+
+  const send = () => {
     const t = text.trim();
-    if (!t || !isGroup) return;
-
-    setSending(true);
-    setErr("");
-
-    try {
-      const created = await apiFetch(`/api/chat-groups/${id}/messages/`, {
-        method: "POST",
-        body: JSON.stringify({ message: t }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      setMessages((prev) => [...prev, created]);
-      setText("");
-    } catch (e) {
-      console.error("Failed to send message", e);
-      setErr(e?.message || "Failed to send message.");
-    } finally {
-      setSending(false);
+    if (!t || !socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+      return;
     }
+
+    socketRef.current.send(JSON.stringify({ message: t }));
+    setText("");
   };
 
   const onKeyDown = (e) => {
@@ -99,16 +155,16 @@ export default function Chat() {
       return {
         name: chatInfo?.name || "Group Chat",
         meta: chatInfo
-          ? `${chatInfo.member_count || 0} members • Temporary match chat`
+          ? `${chatInfo.member_count || 0} members • ${socketReady ? "Live" : "Connecting..."}`
           : "",
       };
     }
 
     return {
-      name: "Friend Chat",
-      meta: "Friend chat backend not connected yet",
+      name: chatInfo?.other_username || "Friend Chat",
+      meta: socketReady ? "Live" : "Connecting...",
     };
-  }, [isGroup, chatInfo]);
+  }, [isGroup, chatInfo, socketReady]);
 
   return (
     <div className="chat-page">
@@ -136,31 +192,23 @@ export default function Chat() {
             <div className="chat-messages">Loading chat...</div>
           ) : err ? (
             <div className="chat-messages">{err}</div>
-          ) : !isGroup ? (
-            <div className="chat-messages">Friend chat backend not connected yet.</div>
           ) : (
             <>
               <div className="chat-messages">
                 {messages.map((m) => {
                   const mine =
-                    m.by === "me" ||
-                    m.sender === "me" ||
+                    Number(m.sender_id) === myUserId ||
                     m.is_mine === true;
 
                   return (
-                    <div
-                      key={m.id}
-                      className={`msg ${mine ? "me" : "other"}`}
-                    >
+                    <div key={m.id} className={`msg ${mine ? "me" : "other"}`}>
                       {!mine && (
                         <div className="msg-sender">
                           {m.sender_name || "User"}
                         </div>
                       )}
 
-                      <div className="msg-bubble">
-                        {m.message || m.text}
-                      </div>
+                      <div className="msg-bubble">{m.message || m.text}</div>
 
                       <div className="msg-time">
                         {formatMsgTime(m.created_at || m.time)}
@@ -185,9 +233,9 @@ export default function Chat() {
                   className="chat-send"
                   type="button"
                   onClick={send}
-                  disabled={sending}
+                  disabled={!socketReady}
                 >
-                  {sending ? "Sending..." : "Send"}
+                  {socketReady ? "Send" : "Connecting..."}
                 </button>
               </div>
             </>
