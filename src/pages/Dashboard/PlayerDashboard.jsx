@@ -125,7 +125,7 @@ export default function PlayerDashboard() {
           <span className="linkish">Open →</span>
         </div>
 
-        <div className="card" onClick={() => navigate("/browsearena")}>
+        <div className="card" onClick={() => navigate("/open-games")}>
           <h3>Join Open Game</h3>
           <p>Find public matches and request to join.</p>
           <span className="linkish">Open →</span>
