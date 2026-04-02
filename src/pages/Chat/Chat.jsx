@@ -9,7 +9,8 @@ export default function Chat() {
   const { pathname } = useLocation();
 
   const isGroup = pathname.includes("/chat/group/");
-  const isDirect = pathname.includes("/chat/friend/") || pathname.includes("/chat/direct/");
+  const isDirect =
+    pathname.includes("/chat/friend/") || pathname.includes("/chat/direct/");
   const title = isGroup ? "Group Chat" : "Friend Chat";
 
   const [chatInfo, setChatInfo] = useState(null);
@@ -22,7 +23,6 @@ export default function Chat() {
   const socketRef = useRef(null);
   const endRef = useRef(null);
 
-  const API_HOST = import.meta.env.VITE_WS_HOST || "127.0.0.1:8000";
   const myUserId = Number(localStorage.getItem("user_id"));
 
   const scrollToBottom = () => {
@@ -41,10 +41,19 @@ export default function Chat() {
         setErr("");
         setLoading(true);
 
+        const token = localStorage.getItem("access");
+        if (!token || token === "undefined" || token === "null") {
+          if (isMounted) {
+            setErr("Your session expired. Please log in again.");
+            setLoading(false);
+          }
+          return;
+        }
+
         if (isGroup) {
           const [groupData, messageData] = await Promise.all([
-            apiFetch(`/api/chat-groups/${id}/`),
-            apiFetch(`/api/chat-groups/${id}/messages/`),
+            apiFetch(`/chat-groups/${id}/`),
+            apiFetch(`/chat-groups/${id}/messages/`)
           ]);
 
           if (!isMounted) return;
@@ -52,15 +61,15 @@ export default function Chat() {
           setMessages(Array.isArray(messageData) ? messageData : []);
         } else if (isDirect) {
           const [chatData, messageData] = await Promise.all([
-            apiFetch(`/api/direct-chats/${id}/`),
-            apiFetch(`/api/direct-chats/${id}/messages/`),
+            apiFetch(`/direct-chats/${id}/`),
+            apiFetch(`/direct-chats/${id}/messages/`),
           ]);
 
           if (!isMounted) return;
           setChatInfo(chatData);
           setMessages(Array.isArray(messageData) ? messageData : []);
         } else {
-          setErr("Invalid chat route.");
+          if (isMounted) setErr("Invalid chat route.");
         }
       } catch (e) {
         console.error(e);
@@ -81,16 +90,22 @@ export default function Chat() {
     if (!isGroup && !isDirect) return;
 
     const token = localStorage.getItem("access");
-    if (!token) {
-      setErr("Login required.");
+    if (!token || token === "undefined" || token === "null") {
+      setErr("Your session expired. Please log in again.");
       return;
     }
+
+    const rawHost = import.meta.env.VITE_WS_HOST || "127.0.0.1:8000";
+    const cleanHost = rawHost
+      .replace(/^https?:\/\//, "")
+      .replace(/^wss?:\/\//, "")
+      .replace(/\/+$/, "");
 
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
     const wsPath = isGroup ? `/ws/chat/${id}/` : `/ws/direct-chat/${id}/`;
 
     const socket = new WebSocket(
-      `${protocol}://${API_HOST}${wsPath}?token=${token}`
+      `${protocol}://${cleanHost}${wsPath}?token=${encodeURIComponent(token)}`
     );
 
     socketRef.current = socket;
@@ -107,6 +122,7 @@ export default function Chat() {
         setMessages((prev) => {
           const exists = prev.some((m) => String(m.id) === String(data.id));
           if (exists) return prev;
+
           return [
             ...prev,
             {
@@ -125,19 +141,22 @@ export default function Chat() {
     };
 
     socket.onerror = () => {
+      setSocketReady(false);
       setErr("Socket connection failed.");
     };
 
     return () => {
+      setSocketReady(false);
       socket.close();
     };
-  }, [id, isGroup, isDirect, API_HOST, myUserId]);
+  }, [id, isGroup, isDirect, myUserId]);
 
   const send = () => {
     const t = text.trim();
-    if (!t || !socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
-      return;
-    }
+
+    if (!t) return;
+    if (!socketRef.current) return;
+    if (socketRef.current.readyState !== WebSocket.OPEN) return;
 
     socketRef.current.send(JSON.stringify({ message: t }));
     setText("");
@@ -155,7 +174,9 @@ export default function Chat() {
       return {
         name: chatInfo?.name || "Group Chat",
         meta: chatInfo
-          ? `${chatInfo.member_count || 0} members • ${socketReady ? "Live" : "Connecting..."}`
+          ? `${chatInfo.member_count || 0} members • ${
+              socketReady ? "Live" : "Connecting..."
+            }`
           : "",
       };
     }
@@ -197,8 +218,7 @@ export default function Chat() {
               <div className="chat-messages">
                 {messages.map((m) => {
                   const mine =
-                    Number(m.sender_id) === myUserId ||
-                    m.is_mine === true;
+                    Number(m.sender_id) === myUserId || m.is_mine === true;
 
                   return (
                     <div key={m.id} className={`msg ${mine ? "me" : "other"}`}>
@@ -233,7 +253,7 @@ export default function Chat() {
                   className="chat-send"
                   type="button"
                   onClick={send}
-                  disabled={!socketReady}
+                  disabled={!socketReady || !text.trim()}
                 >
                   {socketReady ? "Send" : "Connecting..."}
                 </button>

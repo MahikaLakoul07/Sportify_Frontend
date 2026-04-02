@@ -5,6 +5,24 @@ import "./Login.css";
 import { apiFetch } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 
+function parseJwtPayload(token) {
+  try {
+    if (!token || typeof token !== "string") return null;
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+
+    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64));
+  } catch {
+    return null;
+  }
+}
+
+function isAccessToken(token) {
+  const payload = parseJwtPayload(token);
+  return payload?.token_type === "access";
+}
+
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -29,15 +47,22 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const data = await apiFetch("/authapp/login/", {
+      const data = await apiFetch("http://127.0.0.1:8000/authapp/login/", {
         method: "POST",
-        body: { email, password },
+        body: JSON.stringify({ email, password }),
       });
+
+      const access = data?.access;
+      const refresh = data?.refresh;
+
+      if (!isAccessToken(access)) {
+        throw new Error("Invalid access token received from server.");
+      }
 
       const u = login({
         user: data.user,
-        access: data.access,
-        refresh: data.refresh,
+        access,
+        refresh,
       });
 
       goDashboard(u);

@@ -30,6 +30,7 @@ import OwnerReports from "./pages/Owner/OwnerReports/OwnerReports.jsx";
 import OwnerEditGround from "./pages/Owner/OwnerEditGrounds/OwnerEditGrounds.jsx";
 import OpenGames from "./pages/OpenGames/OpenGames.jsx";
 import OwnerGroundAvailability from "./pages/Owner/OwnerGroundAvailability/OwnerGroundAvailability.jsx";
+import ViewPlayerProfile from "./pages/Profile/ViewPlayerProfile.jsx";
 
 import PlayerDashboard from "./pages/Dashboard/PlayerDashboard.jsx";
 
@@ -52,10 +53,12 @@ const App = () => {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/userrequest" element={<UserRequest />} />
         <Route path="/inbox" element={<Inbox />} />
-        <Route path="/chat" element={<Chat />} />
+        <Route path="/chat/group/:id" element={<Chat />} />
+        <Route path="/chat/friend/:id" element={<Chat />} />
         <Route path="/playerprofile" element={<PlayerProfile />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/owner/grounds/:id/availability" element={<OwnerGroundAvailability />} />
+        
 
         {/* PLAYER DASHBOARD */}
         <Route path="/player" element={<PlayerDashboard />} />
@@ -125,6 +128,7 @@ const App = () => {
         <Route path="/mybookings/:bookingId" element={<MyBookingDetails />} />
         <Route path="/open-games" element={<OpenGames />} />
         <Route path="/open-games/:id" element={<OpenGames />} />
+        <Route path="/players/:id" element={<ViewPlayerProfile />} />
       </Routes>
 
       <Footer />

@@ -17,11 +17,21 @@ export default function Inbox() {
   const [friendErr, setFriendErr] = useState("");
 
   useEffect(() => {
+    const token = localStorage.getItem("access");
+
+    if (!token || token === "undefined" || token === "null") {
+      setFriendErr("Your session expired. Please log in again.");
+      setGroupErr("Your session expired. Please log in again.");
+      setFriendChats([]);
+      setGroupChats([]);
+      return;
+    }
+
     const loadGroups = async () => {
       try {
         setLoadingGroups(true);
         setGroupErr("");
-        const data = await apiFetch("/api/chat-groups/my/");
+        const data = await apiFetch("/chat-groups/my/");
         setGroupChats(Array.isArray(data) ? data : []);
       } catch (e) {
         console.error("Failed to load group chats", e);
@@ -36,7 +46,7 @@ export default function Inbox() {
       try {
         setLoadingFriends(true);
         setFriendErr("");
-        const data = await apiFetch("/api/direct-chats/my/");
+        const data = await apiFetch("/direct-chats/my/");
         setFriendChats(Array.isArray(data) ? data : []);
       } catch (e) {
         console.error("Failed to load friend chats", e);
@@ -54,10 +64,13 @@ export default function Inbox() {
   const list = useMemo(() => {
     const items = tab === "friends" ? friendChats : groupChats;
     const query = q.trim().toLowerCase();
+
     if (!query) return items;
 
     return items.filter((x) =>
-      (x?.other_username || x?.title || x?.name || "").toLowerCase().includes(query)
+      (x?.other_username || x?.title || x?.name || "")
+        .toLowerCase()
+        .includes(query)
     );
   }, [tab, q, friendChats, groupChats]);
 
@@ -142,7 +155,9 @@ export default function Inbox() {
                     </div>
 
                     <div className="inbox-right">
-                      <div className="inbox-time">{formatLastTime(item?.last_time)}</div>
+                      <div className="inbox-time">
+                        {formatLastTime(item?.last_time)}
+                      </div>
                     </div>
                   </button>
                 ))
@@ -166,7 +181,9 @@ export default function Inbox() {
                   </div>
 
                   <div className="inbox-mid">
-                    <div className="inbox-name">{item?.name || "Untitled Group"}</div>
+                    <div className="inbox-name">
+                      {item?.name || "Untitled Group"}
+                    </div>
                     <div className="inbox-last">
                       {item?.last_message || "No messages yet"}
                     </div>

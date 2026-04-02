@@ -40,13 +40,14 @@ export function AuthProvider({ children }) {
       localStorage.removeItem("access");
       localStorage.removeItem("refresh");
       localStorage.removeItem("user");
+      localStorage.removeItem("user_id");
       setUser(null);
     } finally {
       setBooting(false);
     }
   }, []);
 
-  const isLoggedIn = !!localStorage.getItem("access") && !!user;
+  const isLoggedIn = Boolean(localStorage.getItem("access")) && Boolean(user);
 
   const login = ({ user, access, refresh }) => {
     const normalizedUser = { ...user, role: normalizeRole(user) };
@@ -54,6 +55,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem("access", access);
     if (refresh) localStorage.setItem("refresh", refresh);
     localStorage.setItem("user", JSON.stringify(normalizedUser));
+    localStorage.setItem("user_id", String(user?.user_id || user?.id || ""));
 
     setUser(normalizedUser);
     return normalizedUser;
@@ -63,6 +65,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
     localStorage.removeItem("user");
+    localStorage.removeItem("user_id");
     setUser(null);
   };
 
