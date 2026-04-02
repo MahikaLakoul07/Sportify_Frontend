@@ -6,9 +6,6 @@ import "./navbar.css";
 
 export default function Navbar() {
   const { user, isLoggedIn, logout } = useAuth();
-//   const user = { role: "OWNER" };
-// const isLoggedIn = true;
-// const logout = () => {};
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
@@ -24,97 +21,119 @@ export default function Navbar() {
       if (!menuRef.current) return;
       if (!menuRef.current.contains(e.target)) setOpen(false);
     };
+
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
-
-        {/* LEFT SIDE - Logo */}
         <Link to="/" className="navbar-logo">
           <img src={logo} alt="Sportify Logo" />
         </Link>
 
-        {/* RIGHT SIDE - Navigation Links */}
         <div className="navbar-links">
-          
           {!isLoggedIn && (
             <>
-              <Link to="/login" className="btn outline">Login</Link>
-              <Link to="/register" className="btn primary">Register</Link>
+              <Link to="/login" className="btn outline">
+                Login
+              </Link>
+              <Link to="/register" className="btn primary">
+                Register
+              </Link>
             </>
           )}
 
           {isLoggedIn && (
             <>
-              {/* Role-based dashboard link */}
-              {user?.role === "PLAYER" && (
-                <Link to="/player" className="btn outline">
-                  My Dashboard
-                </Link>
-              )}
+              {user?.user_type === "player" && (
+                <>
+                  <Link to="/player" className="btn outline">
+                    My Dashboard
+                  </Link>
 
-              {user?.role === "OWNER" && (
-                <Link to="/owner" className="btn outline">
-                  Owner Dashboard
-                </Link>
-              )}
+                  <Link to="/players" className="btn outline">
+                    Find Players
+                  </Link>
 
-              {user?.role === "ADMIN" && (
-                <Link to="/admin" className="btn outline">
-                  Admin Panel
-                </Link>
-              )}
+                  <Link to="/notifications" className="btn outline">
+                    Notifications
+                  </Link>
 
-              {user?.role === "PLAYER" ? (
-                <button
-                  onClick={handleLogout}
-                  type="button"
-                  className="btn danger"
-                >
-                  Logout
-                </button>
-              ) : (
-                <div className="dd" ref={menuRef}>
                   <button
-                    className="btn outline dd-btn"
-                    onClick={() => setOpen((p) => !p)}
+                    onClick={handleLogout}
                     type="button"
+                    className="btn danger"
                   >
-                    Menu <span className={`dd-caret ${open ? "up" : ""}`}>▾</span>
+                    Logout
                   </button>
+                </>
+              )}
 
-                  {open && (
-                    <div className="dd-menu">
-                      {/* OWNER MENU */}
-                      {user?.role === "OWNER" && (
-                        <>
-                          <Link to="/createground" className="dd-item strong">
-                            + Create Ground
-                          </Link>
-                          <Link to="/owner/grounds" className="dd-item">
-                            Manage Grounds
-                          </Link>
-                          <Link to="/owner/bookings" className="dd-item">
-                            Bookings
-                          </Link>
-                          <Link to="/owner/reports" className="dd-item">
-                            Reports
-                          </Link>
-                        </>
-                      )}
+              {user?.user_type === "owner" && (
+                <>
+                  <Link to="/owner" className="btn outline">
+                    Owner Dashboard
+                  </Link>
 
-                     
+                  <div className="dd" ref={menuRef}>
+                    <button
+                      className="btn outline dd-btn"
+                      onClick={() => setOpen((prev) => !prev)}
+                      type="button"
+                    >
+                      Menu{" "}
+                      <span className={`dd-caret ${open ? "up" : ""}`}>▾</span>
+                    </button>
 
-                      <div className="dd-divider" />
+                    {open && (
+                      <div className="dd-menu">
+                        <Link to="/createground" className="dd-item strong">
+                          + Create Ground
+                        </Link>
 
-                      <button className="dd-item danger" onClick={handleLogout} type="button">
-                        Logout
-                      </button>
-                    </div>
-                  )}
-                </div>
+                        <Link to="/owner/grounds" className="dd-item">
+                          Manage Grounds
+                        </Link>
+
+                        <Link to="/owner/bookings" className="dd-item">
+                          Bookings
+                        </Link>
+
+                        <Link to="/owner/reports" className="dd-item">
+                          Reports
+                        </Link>
+
+                        <div className="dd-divider" />
+
+                        <button
+                          className="dd-item danger"
+                          onClick={handleLogout}
+                          type="button"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {user?.user_type === "admin" && (
+                <>
+                  <Link to="/admin" className="btn outline">
+                    Admin Panel
+                  </Link>
+
+                  <button
+                    onClick={handleLogout}
+                    type="button"
+                    className="btn danger"
+                  >
+                    Logout
+                  </button>
+                </>
               )}
             </>
           )}

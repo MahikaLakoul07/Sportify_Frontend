@@ -1,0 +1,154 @@
+.players-page {
+  min-height: 100vh;
+  background: #0b0f14;
+  color: #fff;
+  padding: 32px 20px;
+}
+
+.players-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.players-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.players-header h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.players-header p {
+  margin: 6px 0 0;
+  color: #b8c0cc;
+}
+
+.players-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #131a22;
+  border: 1px solid #233041;
+  border-radius: 14px;
+  padding: 12px 14px;
+  min-width: 320px;
+}
+
+.players-search input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 14px;
+}
+
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.player-card {
+  background: linear-gradient(180deg, #121821 0%, #0f141c 100%);
+  border: 1px solid #202a36;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+.player-card-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.player-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #1e2a38;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.player-meta h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.player-meta p {
+  margin: 4px 0 0;
+  color: #9aa7b5;
+  font-size: 14px;
+}
+
+.player-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.player-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c8d1dc;
+  font-size: 14px;
+}
+
+.player-view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  text-decoration: none;
+  background: #ffffff;
+  color: #0d1117;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.player-view-btn:hover {
+  background: #e7edf5;
+}
+
+.players-empty {
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #121821;
+  border: 1px solid #202a36;
+  border-radius: 18px;
+  color: #c8d1dc;
+}
+
+@media (max-width: 768px) {
+  .players-search {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .players-header {
+    align-items: stretch;
+  }
+}

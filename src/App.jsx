@@ -21,6 +21,7 @@ import Inbox from "./pages/Inbox/Inbox";
 import Chat from "./pages/Chat/Chat";
 import PlayerProfile from "./pages/Profile/PlayerProfile";
 import Notifications from "./pages/Notifications/Notifications";
+import Players from "./pages/Players/Players";
 
 import OwnerRoute from "./components/OwnerRoute";
 import OwnerDashboard from "./pages/Dashboard/OwnerDashboard.jsx";
@@ -57,8 +58,12 @@ const App = () => {
         <Route path="/chat/friend/:id" element={<Chat />} />
         <Route path="/playerprofile" element={<PlayerProfile />} />
         <Route path="/notifications" element={<Notifications />} />
-        <Route path="/owner/grounds/:id/availability" element={<OwnerGroundAvailability />} />
-        
+        <Route path="/players" element={<Players />} />
+        <Route path="/players/:playerId" element={<ViewPlayerProfile />} />
+        <Route
+          path="/owner/grounds/:id/availability"
+          element={<OwnerGroundAvailability />}
+        />
 
         {/* PLAYER DASHBOARD */}
         <Route path="/player" element={<PlayerDashboard />} />
@@ -128,7 +133,6 @@ const App = () => {
         <Route path="/mybookings/:bookingId" element={<MyBookingDetails />} />
         <Route path="/open-games" element={<OpenGames />} />
         <Route path="/open-games/:id" element={<OpenGames />} />
-        <Route path="/players/:id" element={<ViewPlayerProfile />} />
       </Routes>
 
       <Footer />

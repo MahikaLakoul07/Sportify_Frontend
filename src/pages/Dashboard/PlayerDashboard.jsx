@@ -67,21 +67,6 @@ export default function PlayerDashboard() {
           </button>
 
           <button
-            className="navIconBtn"
-            onClick={() => navigate("/notifications")}
-            aria-label="Open Notifications"
-            title="Notifications"
-          >
-            <span className="navIconBtn__icon">
-              <BellIcon />
-            </span>
-            <span className="navIconBtn__text">Alerts</span>
-            {unreadNotifications > 0 && (
-              <span className="navIconBtn__badge">{unreadNotifications}</span>
-            )}
-          </button>
-
-          <button
             className="primaryBtn"
             onClick={() => navigate("/grounds")}
           >

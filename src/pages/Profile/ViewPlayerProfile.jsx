@@ -1,7 +1,15 @@
 import React, { useEffect, useState, memo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { apiFetch } from "../../lib/api";
-import { MapPin, Mail, UserPlus, Check, X, ArrowLeft } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  UserPlus,
+  Check,
+  X,
+  ArrowLeft,
+  MessageCircle,
+} from "lucide-react";
 import "./ViewPlayerProfile.css";
 
 const ViewPlayerProfile = () => {
@@ -9,7 +17,10 @@ const ViewPlayerProfile = () => {
   const navigate = useNavigate();
 
   const [player, setPlayer] = useState(null);
-  const [statusData, setStatusData] = useState({ status: "NONE", request_id: null });
+  const [statusData, setStatusData] = useState({
+    status: "NONE",
+    request_id: null,
+  });
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -18,8 +29,8 @@ const ViewPlayerProfile = () => {
       setLoading(true);
 
       const [playerData, relationData] = await Promise.all([
-        apiFetch(`/api/users/${playerId}/`),
-        apiFetch(`/api/connections/status/${playerId}/`),
+        apiFetch(`/auth/players/${playerId}/`),
+        apiFetch(`/connections/status/${playerId}/`),
       ]);
 
       setPlayer(playerData);
@@ -42,7 +53,7 @@ const ViewPlayerProfile = () => {
     try {
       setActionLoading(true);
 
-      const res = await apiFetch("/api/connections/request/", {
+      const res = await apiFetch("/connections/request/", {
         method: "POST",
         body: {
           receiver_id: Number(playerId),
@@ -64,9 +75,11 @@ const ViewPlayerProfile = () => {
 
   const handleAccept = async () => {
     try {
+      if (!statusData?.request_id) return;
+
       setActionLoading(true);
 
-      await apiFetch(`/api/connections/${statusData.request_id}/accept/`, {
+      await apiFetch(`/connections/${statusData.request_id}/accept/`, {
         method: "POST",
       });
 
@@ -84,9 +97,11 @@ const ViewPlayerProfile = () => {
 
   const handleReject = async () => {
     try {
+      if (!statusData?.request_id) return;
+
       setActionLoading(true);
 
-      await apiFetch(`/api/connections/${statusData.request_id}/reject/`, {
+      await apiFetch(`/connections/${statusData.request_id}/reject/`, {
         method: "POST",
       });
 
@@ -143,10 +158,17 @@ const ViewPlayerProfile = () => {
 
       case "CONNECTED":
         return (
-          <button className="vp-btn vp-btn-connected" disabled>
-            <Check size={16} />
-            Connected
-          </button>
+          <div className="vp-actionGroup">
+            <button className="vp-btn vp-btn-connected" disabled>
+              <Check size={16} />
+              Connected
+            </button>
+
+            <Link to="/inbox" className="vp-btn vp-btn-primary">
+              <MessageCircle size={16} />
+              Message
+            </Link>
+          </div>
         );
 
       default:
@@ -175,6 +197,12 @@ const ViewPlayerProfile = () => {
     );
   }
 
+  const displayName =
+    `${player?.first_name || ""} ${player?.last_name || ""}`.trim() ||
+    player?.full_name ||
+    player?.username ||
+    "Player";
+
   return (
     <div className="vp-page">
       <div className="vp-wrap">
@@ -186,21 +214,13 @@ const ViewPlayerProfile = () => {
         <div className="vp-card">
           <div className="vp-top">
             <div className="vp-avatar">
-              {(
-                player?.username ||
-                player?.first_name ||
-                "P"
-              )
+              {(player?.username || player?.first_name || "P")
                 .charAt(0)
                 .toUpperCase()}
             </div>
 
             <div className="vp-mainInfo">
-              <h1>
-                {`${player?.first_name || ""} ${player?.last_name || ""}`.trim() ||
-                  player?.username ||
-                  "Player"}
-              </h1>
+              <h1>{displayName}</h1>
 
               <div className="vp-subInfo">
                 <span>
@@ -209,8 +229,8 @@ const ViewPlayerProfile = () => {
                 </span>
 
                 <span>
-                  <MapPin size={14} />
-                  {player?.location || "Location not set"}
+                  <Phone size={14} />
+                  {player?.phone || "No phone"}
                 </span>
               </div>
             </div>
@@ -219,8 +239,11 @@ const ViewPlayerProfile = () => {
           </div>
 
           <div className="vp-section">
-            <h3>About</h3>
-            <p>{player?.bio || "No bio added yet."}</p>
+            <h3>Player Info</h3>
+            <p>
+              This player can be added to your connections for easier future
+              invites and chats.
+            </p>
           </div>
 
           <div className="vp-grid">
@@ -233,11 +256,21 @@ const ViewPlayerProfile = () => {
               <div className="vp-miniLabel">Phone</div>
               <div className="vp-miniValue">{player?.phone || "Not available"}</div>
             </div>
+
+            <div className="vp-miniCard">
+              <div className="vp-miniLabel">Email</div>
+              <div className="vp-miniValue">{player?.email || "Not available"}</div>
+            </div>
+
+            <div className="vp-miniCard">
+              <div className="vp-miniLabel">Gender</div>
+              <div className="vp-miniValue">{player?.gender || "Not set"}</div>
+            </div>
           </div>
 
           {statusData?.status === "CONNECTED" && (
             <div className="vp-note success">
-              You are connected with this player. You can now invite them more easily in future features.
+              You are connected with this player.
             </div>
           )}
 
