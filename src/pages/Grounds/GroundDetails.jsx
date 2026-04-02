@@ -155,7 +155,7 @@ export default function GroundDetails() {
         const results = await Promise.all(
           days.map(async (d) => {
             const date = ymdLocal(d);
-            const url = `/api/grounds/${id}/slots/?date=${date}`;
+            const url = `/grounds/${id}/slots/?date=${date}`;
             const data = await apiFetch(url, {
               method: "GET",
               signal: controller.signal,
