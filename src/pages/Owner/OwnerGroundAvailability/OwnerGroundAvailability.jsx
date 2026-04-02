@@ -80,7 +80,7 @@ export default function OwnerGroundAvailability() {
     await Promise.all(
       days.map(async (d) => {
         const date = ymdLocal(d);
-        const data = await apiFetch(`/api/grounds/${id}/slots/?date=${date}`);
+        const data = await apiFetch(`/grounds/${id}/slots/?date=${date}`);
 
         const oneDayMap = {};
         for (const s of data?.slots || []) {
@@ -103,7 +103,7 @@ export default function OwnerGroundAvailability() {
         setLoading(true);
         setErr("");
 
-        const groundData = await apiFetch(`/api/grounds/${id}/`);
+        const groundData = await apiFetch(`/grounds/${id}/`);
         setGround(groundData);
 
         const ownerId = Number(
@@ -235,7 +235,7 @@ export default function OwnerGroundAvailability() {
       setSaving(true);
 
       for (const slot of selectedSlots) {
-        await apiFetch("/api/bookings/owner-direct-booking/", {
+        await apiFetch("/bookings/owner-direct-booking/", {
           method: "POST",
           body: {
             ground: Number(id),

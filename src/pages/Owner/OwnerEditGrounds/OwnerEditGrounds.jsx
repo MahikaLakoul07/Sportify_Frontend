@@ -31,7 +31,7 @@ export default function OwnerEditGround() {
         setLoading(true);
         setErr("");
 
-        const data = await apiFetch(`/api/owner/grounds/${id}/edit/`);
+        const data = await apiFetch(`/owner/grounds/${id}/edit/`);
 
         setForm({
           name: data.name || "",
@@ -103,7 +103,7 @@ export default function OwnerEditGround() {
         formData.append("image", image);
       }
 
-      const updated = await apiFetch(`/api/owner/grounds/${id}/edit/`, {
+      const updated = await apiFetch(`/owner/grounds/${id}/edit/`, {
         method: "PATCH",
         body: formData,
       });

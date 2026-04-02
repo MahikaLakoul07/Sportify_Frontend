@@ -80,7 +80,7 @@ export default function GroundDetails() {
       setErr("");
 
       try {
-        const data = await apiFetch(`/api/grounds/${id}/`, { method: "GET" });
+        const data = await apiFetch(`/grounds/${id}/`, { method: "GET" });
 
         const mapped = {
           id: data.id,

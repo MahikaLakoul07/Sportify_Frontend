@@ -144,7 +144,7 @@ export default function CreateGround() {
       // 2) Save Availability (only if owner added any)
       if (availabilityPayload.availability.length > 0) {
         await apiFetch(
-          `http://localhost:8000/api/grounds/${created.id}/availability/bulk/`,
+          `http://localhost:8000/grounds/${created.id}/availability/bulk/`,
           {
             method: "POST",
             body: availabilityPayload,

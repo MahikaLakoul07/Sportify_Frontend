@@ -92,7 +92,7 @@ export default function Checkout() {
         payment_mode: paymentMode,
       };
 
-      const data = await apiFetch("/api/payments/esewa/initiate/", {
+      const data = await apiFetch("/payments/esewa/initiate/", {
         method: "POST",
         body: payload,
       });

@@ -25,7 +25,7 @@ export default function MyBookingDetails() {
         setLoading(true);
         setErr("");
 
-        const data = await apiFetch(`/api/bookings/${bookingId}/`);
+        const data = await apiFetch(`/bookings/${bookingId}/`);
         setBooking(data);
       } catch (error) {
         console.error("Failed to load booking details:", error);

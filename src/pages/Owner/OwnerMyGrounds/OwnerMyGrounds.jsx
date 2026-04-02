@@ -14,7 +14,7 @@ export default function OwnerMyGrounds() {
         setLoading(true);
         setErr("");
 
-        const data = await apiFetch("/api/owner/grounds/");
+        const data = await apiFetch("/owner/grounds/");
         setGrounds(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("loadMyGrounds error:", error);

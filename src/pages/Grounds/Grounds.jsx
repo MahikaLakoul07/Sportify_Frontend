@@ -28,8 +28,8 @@ export default function Grounds() {
 
       // use /api/grounds
       const url = qs.toString()
-        ? `/api/grounds/?${qs.toString()}`
-        : "/api/grounds/";
+        ? `/grounds/?${qs.toString()}`
+        : "/grounds/";
 
       const data = await apiFetch(url, { method: "GET" });
 

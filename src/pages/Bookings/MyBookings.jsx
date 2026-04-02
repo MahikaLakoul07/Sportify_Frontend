@@ -41,7 +41,7 @@ export default function MyBookings() {
         setLoading(true);
         setErr("");
 
-        const data = await apiFetch("/api/bookings/my/");
+        const data = await apiFetch("/bookings/my/");
         setBookings(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to load bookings:", error);
