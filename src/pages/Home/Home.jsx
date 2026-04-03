@@ -12,7 +12,7 @@ import fieldFutsal from "../../assets/field_futsal.png";
 import GroundCard from "../../components/GroundCard/GroundCard.jsx";
 import OpenGameCard from "../../components/OpenGameCard/OpenGameCard.jsx";
 
-// ✅ IMPORTANT: use publicFetch
+// IMPORTANT: use publicFetch
 import { publicFetch } from "../../lib/api";
 
 export default function Home() {
@@ -24,13 +24,12 @@ export default function Home() {
 
   const fallbackImages = [dhukuFutsalHub, khelkunjArena, fieldFutsal];
 
-  // 🔥 LOAD OPEN GAMES
+  // LOAD OPEN GAMES
   useEffect(() => {
     const loadOpenGames = async () => {
       try {
         setLoadingOpenGames(true);
 
-        // ✅ FIXED PATH (NO /api HERE)
         const data = await publicFetch("/bookings/open-games/?today=1");
 
         setOpenGames(Array.isArray(data) ? data : []);
@@ -51,7 +50,7 @@ export default function Home() {
       try {
         setLoadingFeaturedGrounds(true);
 
-        // ✅ FIXED PATH (NO /api HERE)
+        // FIXED PATH (NO /api HERE)
         const data = await publicFetch("/grounds/");
 
         const grounds = Array.isArray(data) ? data : data?.results || [];

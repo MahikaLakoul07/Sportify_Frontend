@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import logo from "../../assets/logo.png";
 import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
-import { apiFetch } from "../../lib/api";
+import { serverFetch } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 
 function parseJwtPayload(token) {
@@ -47,9 +47,9 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const data = await apiFetch("http://127.0.0.1:8000/authapp/login/", {
+      const data = await serverFetch("/authapp/login/", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: { email, password },
       });
 
       const access = data?.access;

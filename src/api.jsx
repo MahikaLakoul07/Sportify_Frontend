@@ -24,7 +24,7 @@ async function tryRefreshToken() {
   if (!refresh) return null;
 
   try {
-    const res = await fetch(buildUrl("/api/token/refresh/"), {
+    const res = await fetch(buildUrl("/token/refresh/"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

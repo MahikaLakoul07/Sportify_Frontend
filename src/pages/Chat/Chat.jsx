@@ -87,7 +87,9 @@ export default function Chat() {
   }, [id, isGroup, isDirect]);
 
   useEffect(() => {
-    if (!isGroup && !isDirect) return;
+    if (!id || (!isGroup && !isDirect)) return;
+    if (loading) return;
+    if (err) return;
 
     const token = localStorage.getItem("access");
     if (!token || token === "undefined" || token === "null") {
@@ -104,13 +106,19 @@ export default function Chat() {
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
     const wsPath = isGroup ? `/ws/chat/${id}/` : `/ws/direct-chat/${id}/`;
 
-    const socket = new WebSocket(
-      `${protocol}://${cleanHost}${wsPath}?token=${encodeURIComponent(token)}`
-    );
+    const socketUrl = `${protocol}://${cleanHost}${wsPath}?token=${encodeURIComponent(token)}`;
+    console.log("Opening WebSocket:", socketUrl);
 
+    if (socketRef.current) {
+      socketRef.current.close();
+      socketRef.current = null;
+    }
+
+    const socket = new WebSocket(socketUrl);
     socketRef.current = socket;
 
     socket.onopen = () => {
+      console.log("WS connected");
       setSocketReady(true);
       setErr("");
     };
@@ -136,20 +144,34 @@ export default function Chat() {
       }
     };
 
-    socket.onclose = () => {
+    socket.onerror = (e) => {
+      console.error("WS error", e);
       setSocketReady(false);
     };
 
-    socket.onerror = () => {
+    socket.onclose = (e) => {
+      console.error("WS closed", e.code, e.reason);
       setSocketReady(false);
-      setErr("Socket connection failed.");
+
+      if (e.code === 4001) {
+        setErr("WebSocket auth failed. Please log in again.");
+      } else if (e.code === 4003) {
+        setErr("You are not allowed to access this chat.");
+      } else if (e.code === 4004) {
+        setErr("This group chat is inactive or expired.");
+      } else if (e.code === 1006) {
+        setErr("Socket closed unexpectedly. Check Django terminal logs.");
+      }
     };
 
     return () => {
       setSocketReady(false);
-      socket.close();
+      if (socketRef.current) {
+        socketRef.current.close();
+        socketRef.current = null;
+      }
     };
-  }, [id, isGroup, isDirect, myUserId]);
+  }, [id, isGroup, isDirect, myUserId, loading]);
 
   const send = () => {
     const t = text.trim();

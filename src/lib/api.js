@@ -1,7 +1,8 @@
-let BACKEND_ROOT =
-  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+const API_ROOT =
+  (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api").replace(/\/+$/, "");
 
-BACKEND_ROOT = BACKEND_ROOT.replace(/\/+$/, "");
+const SERVER_ROOT =
+  (import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
 
 function getToken() {
   return localStorage.getItem("access");
@@ -31,9 +32,17 @@ async function handleResponse(res) {
   return data;
 }
 
-export async function apiFetch(path, options = {}) {
+function buildUrl(root, path) {
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
   const safePath = path.startsWith("/") ? path : `/${path}`;
-  const url = `${BACKEND_ROOT}${safePath}`;
+  return `${root}${safePath}`;
+}
+
+export async function apiFetch(path, options = {}) {
+  const url = buildUrl(API_ROOT, path);
 
   console.log("🌍 API CALL:", url);
 
@@ -49,7 +58,6 @@ export async function apiFetch(path, options = {}) {
 
   if (!isFormData && hasBody) {
     headers["Content-Type"] = "application/json";
-
     if (typeof options.body !== "string") {
       options.body = JSON.stringify(options.body);
     }
@@ -65,8 +73,7 @@ export async function apiFetch(path, options = {}) {
 }
 
 export async function publicFetch(path, options = {}) {
-  const safePath = path.startsWith("/") ? path : `/${path}`;
-  const url = `${BACKEND_ROOT}${safePath}`;
+  const url = buildUrl(API_ROOT, path);
 
   console.log("🌍 PUBLIC API CALL:", url);
 
@@ -77,7 +84,6 @@ export async function publicFetch(path, options = {}) {
 
   if (!isFormData && hasBody) {
     headers["Content-Type"] = "application/json";
-
     if (typeof options.body !== "string") {
       options.body = JSON.stringify(options.body);
     }
@@ -86,6 +92,32 @@ export async function publicFetch(path, options = {}) {
   const res = await fetch(url, {
     ...options,
     headers,
+  });
+
+  return handleResponse(res);
+}
+
+export async function serverFetch(path, options = {}) {
+  const url = buildUrl(SERVER_ROOT, path);
+
+  console.log("🌍 SERVER CALL:", url);
+
+  const headers = { ...(options.headers || {}) };
+
+  const isFormData = options.body instanceof FormData;
+  const hasBody = options.body !== undefined && options.body !== null;
+
+  if (!isFormData && hasBody) {
+    headers["Content-Type"] = "application/json";
+    if (typeof options.body !== "string") {
+      options.body = JSON.stringify(options.body);
+    }
+  }
+
+  const res = await fetch(url, {
+    ...options,
+    headers,
+    credentials: "include",
   });
 
   return handleResponse(res);
