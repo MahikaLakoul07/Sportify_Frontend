@@ -12,6 +12,7 @@ export default function MyBookingDetails() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [success, setSuccess] = useState("");
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   const [paymentPopup, setPaymentPopup] = useState({
     open: false,
@@ -82,17 +83,38 @@ export default function MyBookingDetails() {
     setSuccess("");
   };
 
-  const onCancel = function () {
+  const onCancel = async function () {
     resetMessages();
 
     if (!booking) return;
 
-    if (booking.status !== "PENDING") {
-      setErr("Only pending bookings can be cancelled.");
+    if (booking.status !== "PENDING" && booking.status !== "BOOKED") {
+      setErr("Only active upcoming bookings can be cancelled.");
       return;
     }
 
-    setSuccess("Cancel request prepared (connect backend later).");
+    const confirmed = window.confirm("Are you sure you want to cancel this booking?");
+    if (!confirmed) return;
+
+    try {
+      setCancelLoading(true);
+
+      const res = await apiFetch(`/bookings/${bookingId}/cancel/`, {
+        method: "POST",
+      });
+
+      setBooking((prev) => ({
+        ...prev,
+        status: "CANCELLED",
+      }));
+
+      setSuccess(res?.detail || "Booking cancelled successfully.");
+    } catch (error) {
+      console.error("Failed to cancel booking:", error);
+      setErr(error.message || "Failed to cancel booking.");
+    } finally {
+      setCancelLoading(false);
+    }
   };
 
   const bookingTypeLabel = useMemo(() => {
@@ -116,7 +138,6 @@ export default function MyBookingDetails() {
 
     return "N/A";
   }, [booking]);
-
 
   const slotLabel = useMemo(() => {
     if (!booking) return "";
@@ -227,7 +248,6 @@ export default function MyBookingDetails() {
                 <div className="details-text">
                   Current Players: {booking.current_players} / {booking.required_players}
                 </div>
-
               </div>
             ) : null}
 
@@ -239,9 +259,9 @@ export default function MyBookingDetails() {
                 View Ground
               </Link>
 
-              {booking.status === "PENDING" ? (
-                <button className="btn primary" onClick={onCancel}>
-                  Cancel Booking
+              {(booking.status === "PENDING" || booking.status === "BOOKED") ? (
+                <button className="btn primary" onClick={onCancel} disabled={cancelLoading}>
+                  {cancelLoading ? "Cancelling..." : "Cancel Booking"}
                 </button>
               ) : (
                 <button className="btn primary" disabled>
