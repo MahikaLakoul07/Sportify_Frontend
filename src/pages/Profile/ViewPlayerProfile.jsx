@@ -164,7 +164,9 @@ const ViewPlayerProfile = () => {
               Connected
             </button>
 
-            <Link to="/inbox" className="vp-btn vp-btn-primary">
+            <Link to={`/chat/friend/${playerId}`} 
+            className="vp-btn vp-btn-primary"
+            onClick={() => console.log("Opening chat for playerId =", playerId)}>
               <MessageCircle size={16} />
               Message
             </Link>
