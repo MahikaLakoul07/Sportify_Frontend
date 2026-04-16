@@ -228,11 +228,6 @@ export default function MyBookingDetails() {
                   Current Players: {booking.current_players} / {booking.required_players}
                 </div>
 
-                <div className="details-actions">
-                  <button className="btn outline" disabled>
-                    View Join Requests (next)
-                  </button>
-                </div>
               </div>
             ) : null}
 
