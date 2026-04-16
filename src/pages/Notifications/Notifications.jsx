@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useEffect, useMemo, useState } from "react";
 import { Bell, CheckCircle2 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
 import "./Notifications.css";
@@ -6,6 +6,10 @@ import "./Notifications.css";
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const unreadCount = useMemo(
+    () => notifications.filter((item) => !item.is_read).length,
+    [notifications]
+  );
 
   const fetchNotifications = async () => {
     try {
@@ -78,10 +82,41 @@ const Notifications = () => {
           <div>
             <h1 style={{ margin: 0 }}>Notifications</h1>
             <p style={{ marginTop: "6px", opacity: 0.8 }}>
-              Connection updates and request activity.
+              Connection updates and booking activity.
             </p>
           </div>
 
+          <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+            <span
+              style={{
+                background: "#14532d",
+                color: "#dcfce7",
+                fontSize: "12px",
+                padding: "6px 10px",
+                borderRadius: "999px",
+                fontWeight: 700,
+              }}
+            >
+              Unread: {unreadCount}
+            </span>
+
+            {notifications.length > 0 && unreadCount > 0 && (
+              <button
+                onClick={markAllAsRead}
+                style={{
+                  background: "#22c55e",
+                  color: "#052e16",
+                  border: "none",
+                  padding: "10px 14px",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  fontWeight: 700,
+                }}
+              >
+                Mark All as Read
+              </button>
+            )}
+          </div>
         </div>
 
         {loading ? (
@@ -114,27 +149,54 @@ const Notifications = () => {
                   }}
                 >
                   <strong>{item.message}</strong>
-                  {!item.is_read && (
-                    <span
-                      style={{
-                        background: "#14532d",
-                        color: "#dcfce7",
-                        fontSize: "12px",
-                        padding: "4px 8px",
-                        borderRadius: "999px",
-                        fontWeight: 700,
-                      }}
-                    >
-                      New
-                    </span>
-                  )}
+
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                    {!item.is_read && (
+                      <span
+                        style={{
+                          background: "#14532d",
+                          color: "#dcfce7",
+                          fontSize: "12px",
+                          padding: "4px 8px",
+                          borderRadius: "999px",
+                          fontWeight: 700,
+                        }}
+                      >
+                        New
+                      </span>
+                    )}
+
+                    {!item.is_read && (
+                      <button
+                        onClick={() => markAsRead(item.id)}
+                        style={{
+                          background: "transparent",
+                          border: "1px solid #4ade80",
+                          color: "#4ade80",
+                          padding: "6px 10px",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        <CheckCircle2 size={16} />
+                        Mark Read
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <p style={{ marginTop: "8px", opacity: 0.75 }}>
-                  From: {item.actor?.full_name || item.actor?.username || "Player"}
+                  From: {item.actor?.full_name || item.actor?.username || "User"}
+                </p>
+
+                <p style={{ marginTop: "6px", opacity: 0.6, fontSize: "13px" }}>
+                  Type: {item.notification_type}
                 </p>
               </div>
-
             </div>
           ))
         )}
