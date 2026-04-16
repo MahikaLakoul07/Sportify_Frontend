@@ -5,7 +5,7 @@ import { apiFetch } from "../../lib/api";
 
 function prettifyPosition(value) {
   if (!value) return "";
-  return value
+  return String(value)
     .toLowerCase()
     .split("_")
     .map((x) => x.charAt(0).toUpperCase() + x.slice(1))
@@ -58,7 +58,7 @@ export default function Checkout() {
   }, [paymentMode, price, deposit]);
 
   const payAtVenue = useMemo(() => {
-    return paymentMode === "PAY_FULL_ONLINE" ? 0 : price - deposit;
+    return paymentMode === "PAY_FULL_ONLINE" ? 0 : Math.max(0, price - deposit);
   }, [paymentMode, price, deposit]);
 
   const prettyPositions = useMemo(() => {
@@ -85,32 +85,53 @@ export default function Checkout() {
         start_time: state.start_time,
         end_time: state.end_time,
         booking_type: state.bookingType || "CLOSED",
-        required_players: state.requiredPlayers || 1,
-        open_game_note: state.openGameNote || "",
-        needed_positions: state.neededPositions || [],
-        total_amount: payNow,
+        required_players: isOpenBooking ? Number(state.requiredPlayers || 1) : 1,
+        open_game_note: isOpenBooking ? state.openGameNote || "" : "",
+        needed_positions: isOpenBooking ? state.neededPositions || [] : [],
+        total_amount: Number(payNow),
         payment_mode: paymentMode,
       };
 
+      console.log("ESEWA INIT PAYLOAD:", payload);
+
       const data = await apiFetch("/payments/esewa/initiate/", {
         method: "POST",
-        body: payload,
+        body: JSON.stringify(payload),
       });
+
+      console.log("ESEWA INIT RESPONSE:", data);
 
       if (data?.mode === "mock" && data?.redirect_url) {
         window.location.href = data.redirect_url;
         return;
       }
 
-      if (!data?.action_url) {
-        throw new Error("Missing eSewa action URL from backend.");
+      const actionUrl =
+        data?.action_url ||
+        data?.form_url ||
+        data?.payment_url ||
+        data?.url ||
+        "";
+
+      if (!actionUrl) {
+        throw new Error(
+          data?.detail ||
+            data?.message ||
+            "Missing eSewa action URL from backend."
+        );
       }
 
-      if (!data?.fields || typeof data.fields !== "object") {
-        throw new Error("Missing eSewa fields from backend.");
+      const fields = data?.fields || data?.form_data || {};
+
+      if (!fields || typeof fields !== "object" || Array.isArray(fields)) {
+        throw new Error(
+          data?.detail ||
+            data?.message ||
+            "Missing eSewa fields from backend."
+        );
       }
 
-      postToEsewa(data.action_url, data.fields);
+      postToEsewa(actionUrl, fields);
     } catch (e) {
       console.error("PAYMENT INIT ERROR:", e);
       setErr(e?.message || "Payment initialization failed.");
@@ -232,7 +253,7 @@ export default function Checkout() {
 
                   <div className="helpText">
                     For open bookings, a temporary group chat will be available
-                    after successful payment/booking confirmation.
+                    after successful payment and booking confirmation.
                   </div>
                 </>
               )}
@@ -266,7 +287,7 @@ export default function Checkout() {
                     <span className="pill">20% Deposit Now</span>
                   </div>
                   <div className="muted">
-                    Pay NPR {deposit} now (compulsory). Pay remaining at venue.
+                    Pay NPR {deposit} now. Pay remaining at venue.
                   </div>
                 </button>
               </div>
@@ -304,7 +325,7 @@ export default function Checkout() {
 
               <div className="helpText">
                 Deposit is compulsory for booking confirmation. Choose full online
-                payment if you don’t want to pay anything at the venue.
+                payment if you do not want to pay anything at the venue.
               </div>
             </div>
           </div>
