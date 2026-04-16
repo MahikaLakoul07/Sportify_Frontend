@@ -9,8 +9,10 @@ export default function Chat() {
   const { pathname } = useLocation();
 
   const isGroup = pathname.includes("/chat/group/");
-  const isDirect =
-    pathname.includes("/chat/friend/") || pathname.includes("/chat/direct/");
+  const isFriendRoute = pathname.includes("/chat/friend/");
+  const isDirectRoute = pathname.includes("/chat/direct/");
+  const isDirect = isFriendRoute || isDirectRoute;
+
   const title = isGroup ? "Group Chat" : "Friend Chat";
 
   const [chatInfo, setChatInfo] = useState(null);
@@ -19,6 +21,7 @@ export default function Chat() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [socketReady, setSocketReady] = useState(false);
+  const [resolvedChatId, setResolvedChatId] = useState(null);
 
   const socketRef = useRef(null);
   const endRef = useRef(null);
@@ -40,6 +43,9 @@ export default function Chat() {
       try {
         setErr("");
         setLoading(true);
+        setResolvedChatId(null);
+        setChatInfo(null);
+        setMessages([]);
 
         const token = localStorage.getItem("access");
         if (!token || token === "undefined" || token === "null") {
@@ -53,29 +59,65 @@ export default function Chat() {
         if (isGroup) {
           const [groupData, messageData] = await Promise.all([
             apiFetch(`/chat-groups/${id}/`),
-            apiFetch(`/chat-groups/${id}/messages/`)
+            apiFetch(`/chat-groups/${id}/messages/`),
           ]);
 
           if (!isMounted) return;
+
           setChatInfo(groupData);
           setMessages(Array.isArray(messageData) ? messageData : []);
-        } else if (isDirect) {
+          setResolvedChatId(Number(id));
+          return;
+        }
+
+        if (isDirectRoute) {
           const [chatData, messageData] = await Promise.all([
             apiFetch(`/direct-chats/${id}/`),
             apiFetch(`/direct-chats/${id}/messages/`),
           ]);
 
           if (!isMounted) return;
+
           setChatInfo(chatData);
           setMessages(Array.isArray(messageData) ? messageData : []);
-        } else {
-          if (isMounted) setErr("Invalid chat route.");
+          setResolvedChatId(Number(id));
+          return;
+        }
+
+        if (isFriendRoute) {
+          const chatData = await apiFetch(`/direct-chats/get-or-create/`, {
+            method: "POST",
+            body: JSON.stringify({ user_id: Number(id) }),
+          });
+
+          const chatId = chatData?.id;
+
+          if (!chatId) {
+            throw new Error("Could not create or load direct chat.");
+          }
+
+          const messageData = await apiFetch(`/direct-chats/${chatId}/messages/`);
+
+          if (!isMounted) return;
+
+          setChatInfo(chatData);
+          setMessages(Array.isArray(messageData) ? messageData : []);
+          setResolvedChatId(Number(chatId));
+          return;
+        }
+
+        if (isMounted) {
+          setErr("Invalid chat route.");
         }
       } catch (e) {
-        console.error(e);
-        if (isMounted) setErr(e?.message || "Failed to load chat.");
+        console.error("Chat load error:", e);
+        if (isMounted) {
+          setErr(e?.message || "Failed to load chat.");
+        }
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -84,10 +126,10 @@ export default function Chat() {
     return () => {
       isMounted = false;
     };
-  }, [id, isGroup, isDirect]);
+  }, [id, isGroup, isFriendRoute, isDirectRoute]);
 
   useEffect(() => {
-    if (!id || (!isGroup && !isDirect)) return;
+    if (!resolvedChatId || (!isGroup && !isDirect)) return;
     if (loading) return;
     if (err) return;
 
@@ -104,7 +146,9 @@ export default function Chat() {
       .replace(/\/+$/, "");
 
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const wsPath = isGroup ? `/ws/chat/${id}/` : `/ws/direct-chat/${id}/`;
+    const wsPath = isGroup
+      ? `/ws/chat/${resolvedChatId}/`
+      : `/ws/direct-chat/${resolvedChatId}/`;
 
     const socketUrl = `${protocol}://${cleanHost}${wsPath}?token=${encodeURIComponent(token)}`;
     console.log("Opening WebSocket:", socketUrl);
@@ -171,7 +215,7 @@ export default function Chat() {
         socketRef.current = null;
       }
     };
-  }, [id, isGroup, isDirect, myUserId, loading]);
+  }, [resolvedChatId, isGroup, isDirect, myUserId, loading, err]);
 
   const send = () => {
     const t = text.trim();
