@@ -33,11 +33,14 @@ const ViewPlayerProfile = () => {
         apiFetch(`/connections/status/${playerId}/`),
       ]);
 
+      console.log("PLAYER PROFILE DATA:", playerData);
+      console.log("CONNECTION STATUS DATA:", relationData);
+
       setPlayer(playerData);
       setStatusData(relationData || { status: "NONE", request_id: null });
     } catch (error) {
       console.error("Failed to load player profile:", error);
-      alert(error.message || "Failed to load player profile.");
+      alert(error?.message || "Failed to load player profile.");
     } finally {
       setLoading(false);
     }
@@ -53,21 +56,30 @@ const ViewPlayerProfile = () => {
     try {
       setActionLoading(true);
 
+      const payload = {
+        receiver_id: Number(playerId),
+      };
+
+      console.log("SEND CONNECTION PAYLOAD:", payload);
+
       const res = await apiFetch("/connections/request/", {
         method: "POST",
-        body: {
-          receiver_id: Number(playerId),
-        },
+        body: JSON.stringify(payload),
       });
+
+      console.log("SEND CONNECTION RESPONSE:", res);
 
       if (res?.status === "ACCEPTED") {
         setStatusData({ status: "CONNECTED", request_id: res.id });
-      } else {
+      } else if (res?.status === "PENDING") {
         setStatusData({ status: "OUTGOING_PENDING", request_id: res.id });
+      } else {
+        await fetchProfileAndStatus();
       }
     } catch (error) {
       console.error("Failed to send request:", error);
-      alert(error.message || "Failed to send request.");
+      alert(error?.message || "Failed to send request.");
+      await fetchProfileAndStatus();
     } finally {
       setActionLoading(false);
     }
@@ -79,9 +91,11 @@ const ViewPlayerProfile = () => {
 
       setActionLoading(true);
 
-      await apiFetch(`/connections/${statusData.request_id}/accept/`, {
+      const res = await apiFetch(`/connections/${statusData.request_id}/accept/`, {
         method: "POST",
       });
+
+      console.log("ACCEPT CONNECTION RESPONSE:", res);
 
       setStatusData((prev) => ({
         ...prev,
@@ -89,7 +103,8 @@ const ViewPlayerProfile = () => {
       }));
     } catch (error) {
       console.error("Failed to accept request:", error);
-      alert(error.message || "Failed to accept request.");
+      alert(error?.message || "Failed to accept request.");
+      await fetchProfileAndStatus();
     } finally {
       setActionLoading(false);
     }
@@ -101,14 +116,17 @@ const ViewPlayerProfile = () => {
 
       setActionLoading(true);
 
-      await apiFetch(`/connections/${statusData.request_id}/reject/`, {
+      const res = await apiFetch(`/connections/${statusData.request_id}/reject/`, {
         method: "POST",
       });
+
+      console.log("REJECT CONNECTION RESPONSE:", res);
 
       setStatusData({ status: "NONE", request_id: null });
     } catch (error) {
       console.error("Failed to reject request:", error);
-      alert(error.message || "Failed to reject request.");
+      alert(error?.message || "Failed to reject request.");
+      await fetchProfileAndStatus();
     } finally {
       setActionLoading(false);
     }
@@ -164,9 +182,11 @@ const ViewPlayerProfile = () => {
               Connected
             </button>
 
-            <Link to={`/chat/friend/${playerId}`} 
-            className="vp-btn vp-btn-primary"
-            onClick={() => console.log("Opening chat for playerId =", playerId)}>
+            <Link
+              to={`/chat/friend/${playerId}`}
+              className="vp-btn vp-btn-primary"
+              onClick={() => console.log("Opening chat for playerId =", playerId)}
+            >
               <MessageCircle size={16} />
               Message
             </Link>
