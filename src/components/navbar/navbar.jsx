@@ -101,10 +101,6 @@ export default function Navbar() {
                           Bookings
                         </Link>
 
-                        <Link to="/owner/reports" className="dd-item">
-                          Reports
-                        </Link>
-
                         <div className="dd-divider" />
 
                         <button
