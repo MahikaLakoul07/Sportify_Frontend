@@ -6,6 +6,7 @@ import "./Notifications.css";
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const unreadCount = useMemo(
     () => notifications.filter((item) => !item.is_read).length,
     [notifications]
@@ -82,7 +83,7 @@ const Notifications = () => {
           <div>
             <h1 style={{ margin: 0 }}>Notifications</h1>
             <p style={{ marginTop: "6px", opacity: 0.8 }}>
-              Connection updates and booking activity.
+              Connection updates, booking placed alerts, and booking cancellation alerts.
             </p>
           </div>
 

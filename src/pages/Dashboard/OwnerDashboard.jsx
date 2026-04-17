@@ -8,7 +8,6 @@ export default function OwnerDashboard() {
   return (
     <div className="ownerDash">
 
-      {/* HEADER */}
       <div className="ownerDash__header">
         <div>
           <h1>Owner Dashboard</h1>
@@ -23,7 +22,6 @@ export default function OwnerDashboard() {
         </button>
       </div>
 
-      {/* STATS SECTION */}
       <div className="statsRow">
         <div className="statCard">
           <span>Total Revenue</span>
@@ -50,7 +48,6 @@ export default function OwnerDashboard() {
         </div>
       </div>
 
-      {/* MAIN GRID */}
       <div className="ownerDash__grid">
         <div className="card" onClick={() => navigate("/owner/grounds")}>
           <h3>My Grounds</h3>
@@ -63,13 +60,6 @@ export default function OwnerDashboard() {
           <p>See booking requests and payment status.</p>
           <span className="linkish">Open →</span>
         </div>
-
-        <div className="card" onClick={() => navigate("/owner/reports")}>
-          <h3>Reports</h3>
-          <p>Daily/weekly revenue and usage insights.</p>
-          <span className="linkish">Open →</span>
-        </div>
-        
       </div>
 
     </div>
