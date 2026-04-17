@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Bell } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import logo from "../../assets/logo.png";
 import "./navbar.css";
@@ -57,8 +58,9 @@ export default function Navbar() {
                     Find Players
                   </Link>
 
-                  <Link to="/notifications" className="btn outline">
-                    Notifications
+                  <Link to="/notifications" className="btn outline nav-icon-btn">
+                    <Bell size={16} />
+                    <span>Notifications</span>
                   </Link>
 
                   <button
@@ -73,6 +75,11 @@ export default function Navbar() {
 
               {user?.user_type === "owner" && (
                 <>
+                  <Link to="/notifications" className="btn outline nav-icon-btn">
+                    <Bell size={16} />
+                    <span>Notifications</span>
+                  </Link>
+
                   <Link to="/owner" className="btn outline">
                     Owner Dashboard
                   </Link>
@@ -89,16 +96,36 @@ export default function Navbar() {
 
                     {open && (
                       <div className="dd-menu">
-                        <Link to="/createground" className="dd-item strong">
+                        <Link
+                          to="/createground"
+                          className="dd-item strong"
+                          onClick={() => setOpen(false)}
+                        >
                           + Create Ground
                         </Link>
 
-                        <Link to="/owner/grounds" className="dd-item">
+                        <Link
+                          to="/owner/grounds"
+                          className="dd-item"
+                          onClick={() => setOpen(false)}
+                        >
                           Manage Grounds
                         </Link>
 
-                        <Link to="/owner/bookings" className="dd-item">
+                        <Link
+                          to="/owner/bookings"
+                          className="dd-item"
+                          onClick={() => setOpen(false)}
+                        >
                           Bookings
+                        </Link>
+
+                        <Link
+                          to="/notifications"
+                          className="dd-item"
+                          onClick={() => setOpen(false)}
+                        >
+                          Notifications
                         </Link>
 
                         <div className="dd-divider" />
