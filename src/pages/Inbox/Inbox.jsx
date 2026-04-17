@@ -68,15 +68,52 @@ export default function Inbox() {
     if (!query) return items;
 
     return items.filter((x) =>
-      (x?.other_username || x?.title || x?.name || "")
+      (
+        x?.other_username ||
+        x?.other_full_name ||
+        x?.title ||
+        x?.name ||
+        ""
+      )
         .toLowerCase()
         .includes(query)
     );
   }, [tab, q, friendChats, groupChats]);
 
+  const getFriendTargetUserId = (item) => {
+    return (
+      item?.other_user_id ||
+      item?.other_user?.user_id ||
+      item?.other_user?.id ||
+      item?.friend_id ||
+      item?.friend?.user_id ||
+      item?.friend?.id ||
+      item?.user_id ||
+      null
+    );
+  };
+
+  const getFriendDisplayName = (item) => {
+    return (
+      item?.other_full_name ||
+      item?.other_username ||
+      item?.friend?.full_name ||
+      item?.friend?.username ||
+      "User"
+    );
+  };
+
   const openChat = (item) => {
     if (tab === "friends") {
-      nav(`/chat/friend/${item.id}`);
+      const otherUserId = getFriendTargetUserId(item);
+
+      if (!otherUserId) {
+        console.error("Direct chat item is missing other user id:", item);
+        setFriendErr("Could not open this direct chat because the friend id is missing.");
+        return;
+      }
+
+      nav(`/chat/friend/${otherUserId}`);
     } else {
       nav(`/chat/group/${item.id}`);
     }
@@ -142,12 +179,12 @@ export default function Inbox() {
                     onClick={() => openChat(item)}
                   >
                     <div className="inbox-avatar">
-                      {getInitials(item?.other_username || "Chat")}
+                      {getInitials(getFriendDisplayName(item))}
                     </div>
 
                     <div className="inbox-mid">
                       <div className="inbox-name">
-                        {item?.other_username || "User"}
+                        {getFriendDisplayName(item)}
                       </div>
                       <div className="inbox-last">
                         {item?.last_message || "No messages yet"}
