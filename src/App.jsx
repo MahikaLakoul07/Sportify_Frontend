@@ -27,7 +27,6 @@ import OwnerRoute from "./components/OwnerRoute";
 import OwnerDashboard from "./pages/Dashboard/OwnerDashboard.jsx";
 import OwnerMyGrounds from "./pages/Owner/OwnerMyGrounds/OwnerMyGrounds.jsx";
 import OwnerGroundBookings from "./pages/Owner/OwnerBookings/OwnerBookings.jsx";
-import OwnerReports from "./pages/Owner/OwnerReports/OwnerReports.jsx";
 import OwnerEditGround from "./pages/Owner/OwnerEditGrounds/OwnerEditGrounds.jsx";
 import OpenGames from "./pages/OpenGames/OpenGames.jsx";
 import OwnerGroundAvailability from "./pages/Owner/OwnerGroundAvailability/OwnerGroundAvailability.jsx";
@@ -43,7 +42,6 @@ const App = () => {
       <Navbar />
 
       <Routes>
-        {/* PUBLIC ROUTES */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -60,15 +58,18 @@ const App = () => {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/players" element={<Players />} />
         <Route path="/players/:playerId" element={<ViewPlayerProfile />} />
+
         <Route
           path="/owner/grounds/:id/availability"
-          element={<OwnerGroundAvailability />}
+          element={
+            <OwnerRoute>
+              <OwnerGroundAvailability />
+            </OwnerRoute>
+          }
         />
 
-        {/* PLAYER DASHBOARD */}
         <Route path="/player" element={<PlayerDashboard />} />
 
-        {/* OWNER DASHBOARD (PROTECTED) */}
         <Route
           path="/owner"
           element={
@@ -78,7 +79,15 @@ const App = () => {
           }
         />
 
-        {/* CREATE GROUND (OWNER ONLY) */}
+        <Route
+          path="/owner/bookings"
+          element={
+            <OwnerRoute>
+              <OwnerGroundBookings />
+            </OwnerRoute>
+          }
+        />
+
         <Route
           path="/createground"
           element={
@@ -88,7 +97,6 @@ const App = () => {
           }
         />
 
-        {/* OWNER'S GROUNDS */}
         <Route
           path="/owner/grounds"
           element={
@@ -98,7 +106,6 @@ const App = () => {
           }
         />
 
-        {/* OWNER'S GROUND BOOKINGS */}
         <Route
           path="/owner/grounds/:id/bookings"
           element={
@@ -108,7 +115,6 @@ const App = () => {
           }
         />
 
-        {/* OWNER'S GROUND EDITING */}
         <Route
           path="/owner/grounds/:id/edit"
           element={
@@ -118,17 +124,6 @@ const App = () => {
           }
         />
 
-        {/* OWNER'S REPORTS */}
-        <Route
-          path="/owner/reports"
-          element={
-            <OwnerRoute>
-              <OwnerReports />
-            </OwnerRoute>
-          }
-        />
-
-        {/* PLAYER BOOKINGS */}
         <Route path="/mybookings" element={<MyBookings />} />
         <Route path="/mybookings/:bookingId" element={<MyBookingDetails />} />
         <Route path="/open-games" element={<OpenGames />} />
